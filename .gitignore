@@ -1,0 +1,10 @@
+# Ignorowanie folderu Visual Studio
+.vs/
+
+# Ignorowanie plików bin i obj
+bin/
+obj/
+
+# Ignorowanie plików tymczasowych systemu Windows
+*.log
+*.tmp
