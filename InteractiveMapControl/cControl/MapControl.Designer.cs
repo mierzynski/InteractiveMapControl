@@ -34,6 +34,7 @@
             this.AddObjectTest = new System.Windows.Forms.ToolStripButton();
             this.axisYPanel = new System.Windows.Forms.Panel();
             this.axisXPanel = new System.Windows.Forms.Panel();
+            this.buttonAddHall = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -48,21 +49,24 @@
             // toolStrip1
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.AddObjectTest});
+            this.AddObjectTest,
+            this.buttonAddHall});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(594, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(594, 27);
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
             // 
             // AddObjectTest
             // 
-            this.AddObjectTest.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.AddObjectTest.BackColor = System.Drawing.SystemColors.InactiveCaption;
+            this.AddObjectTest.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.AddObjectTest.Image = ((System.Drawing.Image)(resources.GetObject("AddObjectTest.Image")));
             this.AddObjectTest.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.AddObjectTest.Margin = new System.Windows.Forms.Padding(4);
             this.AddObjectTest.Name = "AddObjectTest";
-            this.AddObjectTest.Size = new System.Drawing.Size(23, 22);
-            this.AddObjectTest.Text = "toolStripButton1";
+            this.AddObjectTest.Size = new System.Drawing.Size(65, 19);
+            this.AddObjectTest.Text = "testObject";
             this.AddObjectTest.Click += new System.EventHandler(this.AddObjectTest_Click);
             // 
             // axisYPanel
@@ -80,6 +84,18 @@
             this.axisXPanel.Name = "axisXPanel";
             this.axisXPanel.Size = new System.Drawing.Size(551, 25);
             this.axisXPanel.TabIndex = 5;
+            // 
+            // buttonAddHall
+            // 
+            this.buttonAddHall.BackColor = System.Drawing.SystemColors.InactiveCaption;
+            this.buttonAddHall.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.buttonAddHall.Image = ((System.Drawing.Image)(resources.GetObject("buttonAddHall.Image")));
+            this.buttonAddHall.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.buttonAddHall.Margin = new System.Windows.Forms.Padding(4);
+            this.buttonAddHall.Name = "buttonAddHall";
+            this.buttonAddHall.Size = new System.Drawing.Size(35, 19);
+            this.buttonAddHall.Text = "Hala";
+            this.buttonAddHall.Click += new System.EventHandler(this.buttonAddHall_Click_1);
             // 
             // MapControl
             // 
@@ -105,5 +121,6 @@
         private System.Windows.Forms.ToolStripButton AddObjectTest;
         private System.Windows.Forms.Panel axisYPanel;
         private System.Windows.Forms.Panel axisXPanel;
+        private System.Windows.Forms.ToolStripButton buttonAddHall;
     }
 }
