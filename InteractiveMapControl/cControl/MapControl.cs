@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace InteractiveMapControl.cControl
@@ -56,73 +57,55 @@ namespace InteractiveMapControl.cControl
         public void SetGridSpacing(int spacing)
         {
             gridSpacing = spacing > 0 ? spacing : 20; // Minimalny odstęp to 20
-            boardPanel.Invalidate(); // Przerysowanie panelu
+            boardPanel.Invalidate();
         }
 
 
-        public void AddObject(string label, int width, int height, int x, int y)
+        public void AddObject(string label, int width, int height, int x, int y, bool positionBottom)
         {
             var rect = new Panel
             {
                 Width = width,
                 Height = height,
+                BackColor = label.Equals("hala", StringComparison.OrdinalIgnoreCase) ? Color.Transparent : Color.LightBlue,
+                BorderStyle = BorderStyle.FixedSingle,
                 Location = new Point(x, y),
-                BackColor = label.ToLower() == "hala" ? Color.Transparent : Color.LightBlue
+                Tag = label
             };
+
+            // Pobranie bieżącego indeksu obiektu do testów
+            int index = boardPanel.Controls.Count;
 
             var labelControl = new Label
             {
-                Text = label,
+                Text = $"{label} (Index: {index})",
                 AutoSize = true,
-                Location = new Point(5, 5) // Pozycja wewnątrz panelu
+                Location = new Point(5, 5)
             };
 
             rect.Controls.Add(labelControl);
 
-            // Rysowanie niestandardowej ramki tylko dla "hala"
-            if (label.ToLower() == "hala")
-            {
-                rect.Paint += (sender, e) =>
-                {
-                    var panel = sender as Panel;
-                    if (panel == null) return;
-
-                    // Rysowanie ramki o grubości 4 pikseli
-                    using (Pen thickPen = new Pen(Color.Black, 4))
-                    {
-                        Rectangle borderRect = new Rectangle(0, 0, panel.Width - 1, panel.Height - 1);
-                        e.Graphics.DrawRectangle(thickPen, borderRect);
-                    }
-                };
-            }
-
-            // Obsługa przeciągania
+            // Obsługa przeciągania i klikania
             rect.MouseDown += Rectangle_MouseDown;
             rect.MouseMove += Rectangle_MouseMove;
             rect.MouseUp += Rectangle_MouseUp;
-
-            // Obsługa podwójnego kliknięcia
             rect.DoubleClick += Rectangle_DoubleClick;
 
             // Dodajemy obiekt do listy
             mapObjects.Add(rect);
-
-            // Dodajemy panel do boardPanel
             boardPanel.Controls.Add(rect);
-
-            // Jeśli etykieta to "hala", ustawiamy najniższy indeks (0)
-            if (label.ToLower() == "hala")
+            
+            if (positionBottom)
             {
-                // Ustaw "hala" na najniższym poziomie (indeks 0)
-                boardPanel.Controls.SetChildIndex(rect, 0);
+                rect.SendToBack();
             }
             else
             {
-                // Dla innych obiektów nadawaj wyższy indeks
-                int nextIndex = boardPanel.Controls.Count - 1;
-                boardPanel.Controls.SetChildIndex(rect, nextIndex);
+                rect.BringToFront();
             }
         }
+
+
 
 
 
@@ -256,12 +239,12 @@ namespace InteractiveMapControl.cControl
 
         private void AddObjectTest_Click(object sender, EventArgs e)
         {
-            AddObject("Test Object", 100, 60, 40, 40); // Przykładowy obiekt
+            AddObject("Test Object", 140, 60, 40, 40, false);
         }
 
         private void buttonAddHall_Click_1(object sender, EventArgs e)
         {
-            AddObject("Hala", 400, 200, 40, 40); // Przykładowy obiekt
+            AddObject("Hala", 200, 100, 20, 20, true);
         }
     }
 }
