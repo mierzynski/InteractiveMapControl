@@ -3,6 +3,15 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
+using InteractiveMapControl.cControl.Models;
+using System.Linq;
+
+/*
+1. Obiekty, które będą tworzone: hala, pomieszczene, regał, przedmiot
+2. Możliwość grupowania obiektów
+3. Możliwość skalowania poprzez przybliżanie
+4. Możliwość kliknięcia na obiekt regał w celu otworzenia okna gdzie będzie wizualizacja regału od przodu
+ */
 
 namespace InteractiveMapControl.cControl
 {
@@ -10,7 +19,7 @@ namespace InteractiveMapControl.cControl
     {
         private Point _dragStartPoint;
         private Control _draggedControl;
-        private List<Panel> mapObjects = new List<Panel>(); // Lista przechowująca obiekty
+        private List<BoardObject> boardObjects = new List<BoardObject>();
         private Panel _selectedPanel;
         private int gridSpacing = 20;
 
@@ -27,6 +36,8 @@ namespace InteractiveMapControl.cControl
             boardPanel.Paint += BoardPanel_Paint;
 
             SetGridSpacing(20);
+
+            DisplayObjectInfo();
         }
 
         private void BoardPanel_Paint(object sender, PaintEventArgs e)
@@ -60,50 +71,96 @@ namespace InteractiveMapControl.cControl
             boardPanel.Invalidate();
         }
 
-
         public void AddObject(string label, int width, int height, int x, int y, bool positionBottom)
         {
-            var rect = new Panel
+            int currentZIndex = boardPanel.Controls.Count; // Obliczamy aktualny z-index na podstawie liczby elementów na panelu
+
+            var uiPanel = new Panel
             {
                 Width = width,
                 Height = height,
                 BackColor = label.Equals("hala", StringComparison.OrdinalIgnoreCase) ? Color.Transparent : Color.LightBlue,
                 BorderStyle = BorderStyle.FixedSingle,
-                Location = new Point(x, y),
-                Tag = label
+                Location = new Point(x, y)
             };
-
-            // Pobranie bieżącego indeksu obiektu do testów
-            int index = boardPanel.Controls.Count;
 
             var labelControl = new Label
             {
-                Text = $"{label} (Index: {index})",
+                Text = label,
                 AutoSize = true,
                 Location = new Point(5, 5)
             };
 
-            rect.Controls.Add(labelControl);
+            uiPanel.Controls.Add(labelControl);
 
-            // Obsługa przeciągania i klikania
-            rect.MouseDown += Rectangle_MouseDown;
-            rect.MouseMove += Rectangle_MouseMove;
-            rect.MouseUp += Rectangle_MouseUp;
-            rect.DoubleClick += Rectangle_DoubleClick;
+            uiPanel.MouseDown += Rectangle_MouseDown;
+            uiPanel.MouseMove += Rectangle_MouseMove;
+            uiPanel.MouseUp += Rectangle_MouseUp;
+            uiPanel.DoubleClick += Rectangle_DoubleClick;
 
-            // Dodajemy obiekt do listy
-            mapObjects.Add(rect);
-            boardPanel.Controls.Add(rect);
-            
+            var boardObject = new BoardObject
+            {
+                ID = currentZIndex,
+                Name = label,
+                Location = new Point(x, y),
+                Parent = null,
+                Category = label,
+                Group = "Default",
+                UIElement = uiPanel,
+                ZIndex = currentZIndex
+            };
+
+
+            uiPanel.Tag = boardObject;
+
+
+            boardObjects.Add(boardObject);
+
+            boardPanel.Controls.Add(uiPanel);
+
             if (positionBottom)
             {
-                rect.SendToBack();
+                uiPanel.SendToBack();
             }
             else
             {
-                rect.BringToFront();
+                uiPanel.BringToFront();
+            }
+
+            UpdateZIndices();
+
+            // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
+            DisplayObjectInfo();
+        }
+
+
+        // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
+        private void DisplayObjectInfo()
+        {
+
+            listBox.Items.Clear();
+
+            foreach (var obj in boardObjects)
+            {
+                listBox.Items.Add($"ID: {obj.ID}, Name: {obj.Name}, Location: {obj.Location}, ZIndex: {obj.ZIndex}");
             }
         }
+
+
+        private void UpdateZIndices()
+        {
+            for (int i = 0; i < boardPanel.Controls.Count; i++)
+            {
+                var control = boardPanel.Controls[i];
+                var boardObject = boardObjects.FirstOrDefault(obj => obj.UIElement == control);
+
+                if (boardObject != null)
+                {
+                    boardObject.ZIndex = i;
+                }
+            }
+        }
+
 
 
 
@@ -119,17 +176,39 @@ namespace InteractiveMapControl.cControl
 
         private void Rectangle_MouseMove(object sender, MouseEventArgs e)
         {
+            //if (_draggedControl != null && e.Button == MouseButtons.Left)
+            //{
+            //    // Obliczanie nowej pozycji obiektu
+            //    _draggedControl.Left += e.X - _dragStartPoint.X;
+            //    _draggedControl.Top += e.Y - _dragStartPoint.Y;
+            //}
+
             if (_draggedControl != null && e.Button == MouseButtons.Left)
             {
-                // Obliczanie nowej pozycji obiektu
-                _draggedControl.Left += e.X - _dragStartPoint.X;
-                _draggedControl.Top += e.Y - _dragStartPoint.Y;
+                // Obliczanie nowej pozycji
+                int newX = _draggedControl.Left + e.X - _dragStartPoint.X;
+                int newY = _draggedControl.Top + e.Y - _dragStartPoint.Y;
+
+                // Pobranie obiektu BoardObject z Tag
+                BoardObject draggedObject = _draggedControl.Tag as BoardObject;
+                if (draggedObject != null)
+                {
+                    // Zaktualizowanie lokalizacji
+                    draggedObject.Location = new Point(newX, newY);
+
+                    // Rysowanie obiektu w UI
+                    _draggedControl.Left = newX;
+                    _draggedControl.Top = newY;
+                }
             }
         }
 
         private void Rectangle_MouseUp(object sender, MouseEventArgs e)
         {
             _draggedControl = null;
+
+            // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
+            DisplayObjectInfo();
         }
 
         private void Rectangle_DoubleClick(object sender, EventArgs e)
@@ -138,15 +217,14 @@ namespace InteractiveMapControl.cControl
 
             if (clickedPanel != null)
             {
-                // Jeśli mamy już zaznaczony obiekt, przywróć jego oryginalny kolor
                 if (_selectedPanel != null)
                 {
-                    _selectedPanel.BackColor = Color.LightBlue; // Domyślny kolor
+                    _selectedPanel.BackColor = Color.LightBlue;
                 }
 
-                // Podświetl kliknięty obiekt
+
                 clickedPanel.BackColor = Color.LightGreen;
-                _selectedPanel = clickedPanel; // Zapamiętaj zaznaczony obiekt
+                _selectedPanel = clickedPanel;
 
                 MessageBox.Show($"Kliknięto obiekt: {clickedPanel.Controls[0].Text}");
 
