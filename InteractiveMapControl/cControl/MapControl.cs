@@ -38,6 +38,10 @@ namespace InteractiveMapControl.cControl
             SetGridSpacing(20);
 
             DisplayObjectInfo();
+
+            AddObject("Hala", 500, 200, 20, 20, true, 0);
+            AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
+            AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
         }
 
         private void BoardPanel_Paint(object sender, PaintEventArgs e)
@@ -71,9 +75,9 @@ namespace InteractiveMapControl.cControl
             boardPanel.Invalidate();
         }
 
-        public void AddObject(string label, int width, int height, int x, int y, bool positionBottom)
+        public void AddObject(string label, int width, int height, int x, int y, bool positionBottom, int id, int? parentId = null)
         {
-            int currentZIndex = boardPanel.Controls.Count; // Obliczamy aktualny z-index na podstawie liczby elementów na panelu
+            int currentZIndex = boardPanel.Controls.Count;
 
             var uiPanel = new Panel
             {
@@ -86,7 +90,7 @@ namespace InteractiveMapControl.cControl
 
             var labelControl = new Label
             {
-                Text = label,
+                Text = $"{label}, ID: {id}",
                 AutoSize = true,
                 Location = new Point(5, 5)
             };
@@ -98,26 +102,41 @@ namespace InteractiveMapControl.cControl
             uiPanel.MouseUp += Rectangle_MouseUp;
             uiPanel.DoubleClick += Rectangle_DoubleClick;
 
+            // Jeśli parentId jest przekazany, wyszukaj rodzica po ID
+            BoardObject parentObject = null;
+            if (parentId.HasValue)
+            {
+                parentObject = boardObjects.FirstOrDefault(obj => obj.ID == parentId.Value);
+            }
+
+            // Tworzenie nowego obiektu BoardObject
             var boardObject = new BoardObject
             {
-                ID = currentZIndex,
+                ID = id, // Używamy przekazanego ID
                 Name = label,
                 Location = new Point(x, y),
-                Parent = null,
+                Parent = parentObject, // Przypisujemy rodzica, jeśli znaleziony
                 Category = label,
                 Group = "Default",
                 UIElement = uiPanel,
                 ZIndex = currentZIndex
             };
 
+            // Jeśli rodzic istnieje, dodaj obiekt do listy dzieci rodzica
+            if (parentObject != null)
+            {
+                parentObject.Children.Add(boardObject);
+            }
 
             uiPanel.Tag = boardObject;
 
-
+            // Dodaj obiekt do listy boardObjects
             boardObjects.Add(boardObject);
 
+            // Dodaj panel do boardPanel
             boardPanel.Controls.Add(uiPanel);
 
+            // Ustawienie kolejności wyświetlania
             if (positionBottom)
             {
                 uiPanel.SendToBack();
@@ -127,6 +146,7 @@ namespace InteractiveMapControl.cControl
                 uiPanel.BringToFront();
             }
 
+            // Aktualizacja ZIndex dla wszystkich obiektów
             UpdateZIndices();
 
             // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
@@ -134,17 +154,32 @@ namespace InteractiveMapControl.cControl
         }
 
 
+
         // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
+        //private void DisplayObjectInfo()
+        //{
+
+        //    listBox.Items.Clear();
+
+        //    foreach (var obj in boardObjects)
+        //    {
+        //        listBox.Items.Add($"ID: {obj.ID}, Location: {obj.Location}, Parent: ");
+        //    }
+        //}
+
         private void DisplayObjectInfo()
         {
-
             listBox.Items.Clear();
 
             foreach (var obj in boardObjects)
             {
-                listBox.Items.Add($"ID: {obj.ID}, Name: {obj.Name}, Location: {obj.Location}, ZIndex: {obj.ZIndex}");
+                string parentInfo = obj.Parent != null ? obj.Parent.ID.ToString() : "Brak rodzica";
+                string childrenInfo = obj.Children.Any() ? string.Join(", ", obj.Children.Select(c => c.ID)) : "Brak dzieci";
+
+                listBox.Items.Add($"ID: {obj.ID}, Location: {obj.Location}, Parent ID: {parentInfo}, Children IDs: {childrenInfo}");
             }
         }
+
 
 
         private void UpdateZIndices()
@@ -317,12 +352,12 @@ namespace InteractiveMapControl.cControl
 
         private void AddObjectTest_Click(object sender, EventArgs e)
         {
-            AddObject("Test Object", 140, 60, 40, 40, false);
+            //AddObject("Test Object", 140, 60, 40, 40, false);
         }
 
         private void buttonAddHall_Click_1(object sender, EventArgs e)
         {
-            AddObject("Hala", 200, 100, 20, 20, true);
+            //AddObject("Hala", 200, 100, 20, 20, true);
         }
     }
 }
