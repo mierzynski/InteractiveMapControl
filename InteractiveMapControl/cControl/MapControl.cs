@@ -21,63 +21,70 @@ namespace InteractiveMapControl.cControl
         private Control _draggedControl;
         private List<BoardObject> boardObjects = new List<BoardObject>();
         private Panel _selectedPanel;
+
         private int gridSpacing = 20;
+        private Bitmap gridBitmap;
 
         public MapControl()
         {
             InitializeComponent();
 
-            boardPanel.AutoScroll = true;
-            boardPanel.BackColor = Color.LightGray;
+            backgroundPictureBox.SizeMode = PictureBoxSizeMode.Normal;
+            backgroundPictureBox.BackColor = Color.White;
+
+            UpdateGrid();
 
             axisXPanel.Paint += AxisXPanel_Paint;
             axisYPanel.Paint += AxisYPanel_Paint;
 
-            boardPanel.Paint += BoardPanel_Paint;
-
-            SetGridSpacing(20);
-
             DisplayObjectInfo();
 
+            // Dodaj testowe obiekty
             AddObject("Hala", 500, 200, 20, 20, true, 0);
             AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
             AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
+
+
         }
 
-        private void BoardPanel_Paint(object sender, PaintEventArgs e)
+        private void UpdateGrid()
         {
-            // Pobranie grafiki do rysowania
-            Graphics g = e.Graphics;
+            // Tworzenie bitmapy siatki na podstawie aktualnych ustawień
+            gridBitmap = GenerateGridBitmap(backgroundPictureBox.Width, backgroundPictureBox.Height, gridSpacing);
 
-            // Rozmiar boardPanel
-            int width = boardPanel.Width;
-            int height = boardPanel.Height;
-
-            // Kolor i styl linii siatki
-            Pen gridPen = new Pen(Color.DarkGray, 1);
-
-            // Rysowanie linii pionowych
-            for (int x = 0; x < width; x += gridSpacing)
-            {
-                g.DrawLine(gridPen, x, 0, x, height);
-            }
-
-            // Rysowanie linii poziomych
-            for (int y = 0; y < height; y += gridSpacing)
-            {
-                g.DrawLine(gridPen, 0, y, width, y);
-            }
+            // Ustawienie bitmapy jako tła PictureBox
+            backgroundPictureBox.Image = gridBitmap;
         }
 
-        public void SetGridSpacing(int spacing)
+        private Bitmap GenerateGridBitmap(int width, int height, int spacing)
         {
-            gridSpacing = spacing > 0 ? spacing : 20; // Minimalny odstęp to 20
-            boardPanel.Invalidate();
+            Bitmap bitmap = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.Clear(Color.White); // Tło siatki
+
+                // Pióro dla linii siatki
+                using (Pen gridPen = new Pen(Color.LightGray, 1))
+                {
+                    // Rysowanie linii pionowych
+                    for (int x = 0; x < width; x += spacing)
+                    {
+                        g.DrawLine(gridPen, x, 0, x, height);
+                    }
+
+                    // Rysowanie linii poziomych
+                    for (int y = 0; y < height; y += spacing)
+                    {
+                        g.DrawLine(gridPen, 0, y, width, y);
+                    }
+                }
+            }
+            return bitmap;
         }
 
         public void AddObject(string label, int width, int height, int x, int y, bool positionBottom, int id, int? parentId = null)
         {
-            int currentZIndex = boardPanel.Controls.Count;
+            int currentZIndex = backgroundPictureBox.Controls.Count;
 
             var uiPanel = new Panel
             {
@@ -101,6 +108,9 @@ namespace InteractiveMapControl.cControl
             uiPanel.MouseMove += Rectangle_MouseMove;
             uiPanel.MouseUp += Rectangle_MouseUp;
             uiPanel.DoubleClick += Rectangle_DoubleClick;
+
+            backgroundPictureBox.Controls.Add(uiPanel);
+
 
             // Jeśli parentId jest przekazany, wyszukaj rodzica po ID
             BoardObject parentObject = null;
@@ -133,9 +143,6 @@ namespace InteractiveMapControl.cControl
             // Dodaj obiekt do listy boardObjects
             boardObjects.Add(boardObject);
 
-            // Dodaj panel do boardPanel
-            boardPanel.Controls.Add(uiPanel);
-
             // Ustawienie kolejności wyświetlania
             if (positionBottom)
             {
@@ -154,19 +161,7 @@ namespace InteractiveMapControl.cControl
         }
 
 
-
         // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
-        //private void DisplayObjectInfo()
-        //{
-
-        //    listBox.Items.Clear();
-
-        //    foreach (var obj in boardObjects)
-        //    {
-        //        listBox.Items.Add($"ID: {obj.ID}, Location: {obj.Location}, Parent: ");
-        //    }
-        //}
-
         private void DisplayObjectInfo()
         {
             listBox.Items.Clear();
@@ -180,29 +175,6 @@ namespace InteractiveMapControl.cControl
             }
         }
 
-
-
-        private void UpdateZIndices()
-        {
-            for (int i = 0; i < boardPanel.Controls.Count; i++)
-            {
-                var control = boardPanel.Controls[i];
-                var boardObject = boardObjects.FirstOrDefault(obj => obj.UIElement == control);
-
-                if (boardObject != null)
-                {
-                    boardObject.ZIndex = i;
-                }
-            }
-        }
-
-
-
-
-
-
-
-
         private void Rectangle_MouseDown(object sender, MouseEventArgs e)
         {
             _draggedControl = sender as Control;
@@ -211,12 +183,6 @@ namespace InteractiveMapControl.cControl
 
         private void Rectangle_MouseMove(object sender, MouseEventArgs e)
         {
-            //if (_draggedControl != null && e.Button == MouseButtons.Left)
-            //{
-            //    // Obliczanie nowej pozycji obiektu
-            //    _draggedControl.Left += e.X - _dragStartPoint.X;
-            //    _draggedControl.Top += e.Y - _dragStartPoint.Y;
-            //}
 
             if (_draggedControl != null && e.Button == MouseButtons.Left)
             {
@@ -244,6 +210,21 @@ namespace InteractiveMapControl.cControl
 
             // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
             DisplayObjectInfo();
+        }
+
+
+        private void UpdateZIndices()
+        {
+            for (int i = 0; i < backgroundPictureBox.Controls.Count; i++)
+            {
+                var control = backgroundPictureBox.Controls[i];
+                var boardObject = boardObjects.FirstOrDefault(obj => obj.UIElement == control);
+
+                if (boardObject != null)
+                {
+                    boardObject.ZIndex = i;
+                }
+            }
         }
 
         private void Rectangle_DoubleClick(object sender, EventArgs e)
@@ -348,16 +329,6 @@ namespace InteractiveMapControl.cControl
         private void AxisYPanel_Paint(object sender, PaintEventArgs e)
         {
             DrawAxis(e.Graphics, isXAxis: false);
-        }
-
-        private void AddObjectTest_Click(object sender, EventArgs e)
-        {
-            //AddObject("Test Object", 140, 60, 40, 40, false);
-        }
-
-        private void buttonAddHall_Click_1(object sender, EventArgs e)
-        {
-            //AddObject("Hala", 200, 100, 20, 20, true);
         }
     }
 }
