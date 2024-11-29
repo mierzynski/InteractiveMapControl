@@ -23,6 +23,7 @@ namespace InteractiveMapControl.cControl
         private Panel _selectedPanel;
 
         private int gridSpacing = 20;
+        private int previousGridSpacing = -1; // -1 oznacza, że nie ma poprzedniej wartości przy pierwszym uruchomieniu
         private Bitmap gridBitmap;
 
         public MapControl()
@@ -32,6 +33,8 @@ namespace InteractiveMapControl.cControl
             backgroundPictureBox.SizeMode = PictureBoxSizeMode.Normal;
             backgroundPictureBox.BackColor = Color.White;
 
+            backgroundPictureBox.MouseWheel += BackgroundPictureBox_MouseWheel;
+
             UpdateGrid();
 
             axisXPanel.Paint += AxisXPanel_Paint;
@@ -39,29 +42,106 @@ namespace InteractiveMapControl.cControl
 
             DisplayObjectInfo();
 
-            // Dodaj testowe obiekty
+
             AddObject("Hala", 500, 200, 20, 20, true, 0);
             AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
             AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
-
-
         }
+        private void BackgroundPictureBox_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if (ModifierKeys.HasFlag(Keys.Control))
+            {
+                if (e.Delta > 0)
+                {
+                    gridSpacing = Math.Min(gridSpacing + 5, 100); // Maksymalny odstęp: 100
+                }
+                else if (e.Delta < 0)
+                {
+                    gridSpacing = Math.Max(gridSpacing - 5, 5); // Minimalny odstęp: 5
+                }
+                UpdateGrid();
+            }
+        }
+
+        private void UpdateObjectSizes()
+        {
+            float scaleFactor = gridSpacing / 20.0f; // Obliczamy współczynnik skali
+
+            foreach (var boardObject in boardObjects)
+            {
+                // Skalowanie rozmiaru
+                int newWidth = (int)(boardObject.OriginalSize.Width * scaleFactor);
+                int newHeight = (int)(boardObject.OriginalSize.Height * scaleFactor);
+
+                // Skalowanie oryginalnej lokalizacji
+                int newX = (int)(boardObject.OriginalLocation.X * scaleFactor);
+                int newY = (int)(boardObject.OriginalLocation.Y * scaleFactor);
+
+                // Zaokrąglamy do najbliższej linii siatki
+                newX = (newX / gridSpacing) * gridSpacing;  // Zaokrąglamy w dół
+                newY = (newY / gridSpacing) * gridSpacing;  // Zaokrąglamy w dół
+
+                // Aktualizacja właściwości UI
+                boardObject.UIElement.Location = new Point(newX, newY);
+                boardObject.UIElement.Size = new Size(newWidth, newHeight);
+            }
+        }
+
+
+
+
+
+        //PROPOZYCJA CHATGPT
+        //Domyślnie zdarzenie MouseWheel może być przechwycone przez kontener nadrzędny kontrolki.
+        //Aby mieć pewność, że zdarzenie trafi do backgroundPictureBox, nadpisz metodę OnMouseWheel
+        //w klasie MapControl i wywołaj zdarzenie na backgroundPictureBox
+
+        ////protected override void OnMouseWheel(MouseEventArgs e)
+        //{
+        //    base.OnMouseWheel(e);
+
+        //    // Przekierowanie zdarzenia MouseWheel do backgroundPictureBox
+        //    backgroundPictureBox?.Focus();
+        //    backgroundPictureBox?.InvokeOnClick(backgroundPictureBox, e);
+        //}
 
         private void UpdateGrid()
         {
-            // Tworzenie bitmapy siatki na podstawie aktualnych ustawień
             gridBitmap = GenerateGridBitmap(backgroundPictureBox.Width, backgroundPictureBox.Height, gridSpacing);
-
-            // Ustawienie bitmapy jako tła PictureBox
             backgroundPictureBox.Image = gridBitmap;
+
+            axisXPanel.Invalidate();
+            axisYPanel.Invalidate();
+
+            // Jeśli wartość gridSpacing zmieniła się, dostosowujemy pozycje obiektów
+            if (previousGridSpacing != -1)
+            {
+                int difference = gridSpacing - previousGridSpacing;
+
+                foreach (var boardObject in boardObjects)
+                {
+                    Point newLocation = boardObject.OriginalLocation;
+
+                    newLocation.X += difference;
+                    newLocation.Y += difference;
+
+
+                    boardObject.OriginalLocation = newLocation;
+                    boardObject.UIElement.Location = newLocation;
+                }
+            }
+
+            previousGridSpacing = gridSpacing;
+            UpdateObjectSizes();
         }
+
 
         private Bitmap GenerateGridBitmap(int width, int height, int spacing)
         {
             Bitmap bitmap = new Bitmap(width, height);
             using (Graphics g = Graphics.FromImage(bitmap))
             {
-                g.Clear(Color.White); // Tło siatki
+                g.Clear(Color.White);
 
                 // Pióro dla linii siatki
                 using (Pen gridPen = new Pen(Color.LightGray, 1))
@@ -112,27 +192,26 @@ namespace InteractiveMapControl.cControl
             backgroundPictureBox.Controls.Add(uiPanel);
 
 
-            // Jeśli parentId jest przekazany, wyszukaj rodzica po ID
             BoardObject parentObject = null;
             if (parentId.HasValue)
             {
                 parentObject = boardObjects.FirstOrDefault(obj => obj.ID == parentId.Value);
             }
 
-            // Tworzenie nowego obiektu BoardObject
             var boardObject = new BoardObject
             {
-                ID = id, // Używamy przekazanego ID
+                ID = id,
                 Name = label,
-                Location = new Point(x, y),
-                Parent = parentObject, // Przypisujemy rodzica, jeśli znaleziony
+                Parent = parentObject,
                 Category = label,
                 Group = "Default",
                 UIElement = uiPanel,
-                ZIndex = currentZIndex
+                ZIndex = currentZIndex,
+                OriginalLocation = new Point(x, y),
+                OriginalSize = new Size(width, height),
             };
 
-            // Jeśli rodzic istnieje, dodaj obiekt do listy dzieci rodzica
+
             if (parentObject != null)
             {
                 parentObject.Children.Add(boardObject);
@@ -140,10 +219,8 @@ namespace InteractiveMapControl.cControl
 
             uiPanel.Tag = boardObject;
 
-            // Dodaj obiekt do listy boardObjects
             boardObjects.Add(boardObject);
 
-            // Ustawienie kolejności wyświetlania
             if (positionBottom)
             {
                 uiPanel.SendToBack();
@@ -153,7 +230,6 @@ namespace InteractiveMapControl.cControl
                 uiPanel.BringToFront();
             }
 
-            // Aktualizacja ZIndex dla wszystkich obiektów
             UpdateZIndices();
 
             // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
@@ -171,7 +247,7 @@ namespace InteractiveMapControl.cControl
                 string parentInfo = obj.Parent != null ? obj.Parent.ID.ToString() : "Brak rodzica";
                 string childrenInfo = obj.Children.Any() ? string.Join(", ", obj.Children.Select(c => c.ID)) : "Brak dzieci";
 
-                listBox.Items.Add($"ID: {obj.ID}, Location: {obj.Location}, Parent ID: {parentInfo}, Children IDs: {childrenInfo}");
+                listBox.Items.Add($"ID: {obj.ID}, Location: {obj.OriginalLocation}, Parent ID: {parentInfo}, Children IDs: {childrenInfo}");
             }
         }
 
@@ -183,26 +259,36 @@ namespace InteractiveMapControl.cControl
 
         private void Rectangle_MouseMove(object sender, MouseEventArgs e)
         {
-
             if (_draggedControl != null && e.Button == MouseButtons.Left)
             {
-                // Obliczanie nowej pozycji
+                // Obliczamy nową pozycję obiektu
                 int newX = _draggedControl.Left + e.X - _dragStartPoint.X;
                 int newY = _draggedControl.Top + e.Y - _dragStartPoint.Y;
 
-                // Pobranie obiektu BoardObject z Tag
+                // Zaokrąglamy do najbliższej linii siatki
+                int nearestXDown = (newX / gridSpacing) * gridSpacing;  // Zaokrąglamy w dół
+                int nearestXUp = ((newX + gridSpacing - 1) / gridSpacing) * gridSpacing;  // Zaokrąglamy w górę
+                newX = Math.Abs(newX - nearestXDown) < Math.Abs(newX - nearestXUp) ? nearestXDown : nearestXUp;
+
+                int nearestYDown = (newY / gridSpacing) * gridSpacing;  // Zaokrąglamy w dół
+                int nearestYUp = ((newY + gridSpacing - 1) / gridSpacing) * gridSpacing;  // Zaokrąglamy w górę
+                newY = Math.Abs(newY - nearestYDown) < Math.Abs(newY - nearestYUp) ? nearestYDown : nearestYUp;
+
+                // Przypisujemy nowe wartości lokalizacji
                 BoardObject draggedObject = _draggedControl.Tag as BoardObject;
                 if (draggedObject != null)
                 {
-                    // Zaktualizowanie lokalizacji
-                    draggedObject.Location = new Point(newX, newY);
+                    // Aktualizacja lokalizacji obiektu
+                    draggedObject.OriginalLocation = new Point(newX, newY); // Aktualizujemy oryginalną lokalizację
 
-                    // Rysowanie obiektu w UI
+                    // Ustawienie nowej pozycji w UI
                     _draggedControl.Left = newX;
                     _draggedControl.Top = newY;
                 }
             }
         }
+
+
 
         private void Rectangle_MouseUp(object sender, MouseEventArgs e)
         {
@@ -250,14 +336,14 @@ namespace InteractiveMapControl.cControl
 
         private void DrawAxis(Graphics g, bool isXAxis)
         {
-            Pen thickPen = new Pen(Color.Black, 2);
-            Pen thinPen = new Pen(Color.Black, 1);
+            Pen thickPen = new Pen(Color.Black, 2); // Grube kreski dla etykiet
+            Pen thinPen = new Pen(Color.Black, 1); // Cienkie kreski pomocnicze
             Font labelFont = new Font("Arial", 6);
 
             int panelWidth = isXAxis ? axisXPanel.Width : axisYPanel.Width;
             int panelHeight = isXAxis ? axisXPanel.Height : axisYPanel.Height;
 
-            int spacing = 20;
+            int spacing = gridSpacing;
 
             // Rysowanie głównej linii osi X (u dołu) lub Y (po lewej)
             if (isXAxis)
@@ -269,51 +355,42 @@ namespace InteractiveMapControl.cControl
                 g.DrawLine(thinPen, 0, 0, 0, panelHeight);
             }
 
-            // Rysowanie głównych kresek i etykiet
+            // Rysowanie linii i etykiet
             for (int i = 0; i <= (isXAxis ? panelWidth : panelHeight) / spacing; i++)
             {
                 int position = i * spacing;
 
+                // Wybór stylu kreski
+                Pen currentPen = (i % 2 == 0) ? thickPen : thinPen;
+
+                // Rysowanie kreski
                 if (isXAxis)
                 {
-                    // Rysowanie głównej kreski na osi X
-                    g.DrawLine(thickPen, position, panelHeight - 10, position, panelHeight);
+                    g.DrawLine(currentPen, position, panelHeight - 10, position, panelHeight);
+                }
+                else
+                {
+                    g.DrawLine(currentPen, 0, position, 10, position);
+                }
 
-                    // Rysowanie cienkich kresek na osi X
-                    if (i > 0)
-                    {
-                        int thinPosition = position - spacing / 2;
-                        g.DrawLine(thinPen, thinPosition, panelHeight - 5, thinPosition, panelHeight);
-                    }
+                // Rysowanie etykiet tylko co drugą kreskę
+                if (i % 2 == 0) // Co drugą kreskę, gdy indeks `i` jest parzysty
+                {
+                    string label = (i / 2).ToString(); // Etykiety numerowane sekwencyjnie, np. 0, 1, 2...
 
-                    // Etykiety na osi X
-                    if (i > 0)
+                    if (isXAxis)
                     {
-                        string label = i.ToString();
+                        // Etykiety dla osi X
                         SizeF labelSize = g.MeasureString(label, labelFont);
                         float labelX = position - (labelSize.Width / 2);
                         float labelY = panelHeight - 20;
                         g.DrawString(label, labelFont, Brushes.Black, labelX, labelY);
                     }
-                }
-                else
-                {
-                    // Rysowanie głównej kreski na osi Y
-                    g.DrawLine(thickPen, 0, position, 10, position);
-
-                    // Rysowanie cienkich kresek na osi Y
-                    if (i > 0)
+                    else
                     {
-                        int thinPosition = position - spacing / 2;
-                        g.DrawLine(thinPen, 0, thinPosition, 5, thinPosition);
-                    }
-
-                    // Etykiety na osi Y, zmniejszona odległość od osi
-                    if (i > 0)
-                    {
-                        string label = i.ToString();
+                        // Etykiety dla osi Y
                         SizeF labelSize = g.MeasureString(label, labelFont);
-                        float labelX = 12; // Mniejsza wartość dla osi Y, aby etykiety były bliżej kreski
+                        float labelX = 12; // Stała wartość dla lewego marginesu osi Y
                         float labelY = position - (labelSize.Height / 2);
                         g.DrawString(label, labelFont, Brushes.Black, labelX, labelY);
                     }

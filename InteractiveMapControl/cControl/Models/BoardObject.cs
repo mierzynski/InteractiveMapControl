@@ -10,14 +10,15 @@ namespace InteractiveMapControl.cControl.Models
 {
     public class BoardObject
     {
-        public int ID { get; set; }                  // Unikalny identyfikator
-        public string Name { get; set; }            // Nazwa obiektu
-        public Point Location { get; set; }         // Lokalizacja względem rodzica
+        public int ID { get; set; }                 
+        public string Name { get; set; }            
         public BoardObject Parent { get; set; }     // Obiekt rodzic (null, jeśli brak)
-        public List<BoardObject> Children { get; set; } = new List<BoardObject>(); // Lista dzieci
-        public string Category { get; set; }        // Kategoria (np. hala, pomieszczenie)
-        public string Group { get; set; }           // Grupa, do której należy obiekt
-        public Panel UIElement { get; set; }        // Powiązany element graficzny (Panel)
-        public int ZIndex { get; set; }             // Pozycja na osi Z
+        public List<BoardObject> Children { get; set; } = new List<BoardObject>();
+        public string Category { get; set; }        
+        public string Group { get; set; }
+        public Control UIElement { get; set; }
+        public int ZIndex { get; set; }             
+        public Point OriginalLocation { get; set; }         
+        public Size OriginalSize { get; set; }
     }
 }

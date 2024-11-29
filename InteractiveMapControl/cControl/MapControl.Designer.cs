@@ -42,7 +42,7 @@
             // 
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(784, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(647, 25);
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -51,7 +51,7 @@
             this.axisYPanel.BackColor = System.Drawing.SystemColors.ControlLight;
             this.axisYPanel.Location = new System.Drawing.Point(7, 28);
             this.axisYPanel.Name = "axisYPanel";
-            this.axisYPanel.Size = new System.Drawing.Size(25, 304);
+            this.axisYPanel.Size = new System.Drawing.Size(25, 300);
             this.axisYPanel.TabIndex = 4;
             // 
             // axisXPanel
@@ -59,14 +59,14 @@
             this.axisXPanel.BackColor = System.Drawing.SystemColors.ControlLight;
             this.axisXPanel.Location = new System.Drawing.Point(33, 329);
             this.axisXPanel.Name = "axisXPanel";
-            this.axisXPanel.Size = new System.Drawing.Size(551, 25);
+            this.axisXPanel.Size = new System.Drawing.Size(600, 25);
             this.axisXPanel.TabIndex = 5;
             // 
             // infoPanel
             // 
             this.infoPanel.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.infoPanel.Controls.Add(this.listBox);
-            this.infoPanel.Location = new System.Drawing.Point(7, 360);
+            this.infoPanel.Location = new System.Drawing.Point(45, 360);
             this.infoPanel.Name = "infoPanel";
             this.infoPanel.Size = new System.Drawing.Size(577, 134);
             this.infoPanel.TabIndex = 6;
@@ -86,7 +86,7 @@
             this.backgroundPictureBox.BackColor = System.Drawing.SystemColors.AppWorkspace;
             this.backgroundPictureBox.Location = new System.Drawing.Point(33, 28);
             this.backgroundPictureBox.Name = "backgroundPictureBox";
-            this.backgroundPictureBox.Size = new System.Drawing.Size(551, 304);
+            this.backgroundPictureBox.Size = new System.Drawing.Size(600, 300);
             this.backgroundPictureBox.TabIndex = 7;
             this.backgroundPictureBox.TabStop = false;
             // 
@@ -100,7 +100,7 @@
             this.Controls.Add(this.axisYPanel);
             this.Controls.Add(this.toolStrip1);
             this.Name = "MapControl";
-            this.Size = new System.Drawing.Size(784, 505);
+            this.Size = new System.Drawing.Size(647, 505);
             this.infoPanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.backgroundPictureBox)).EndInit();
             this.ResumeLayout(false);
