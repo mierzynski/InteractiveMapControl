@@ -21,6 +21,11 @@ namespace InteractiveMapControl.cControl
         private Control _draggedControl;
         private List<BoardObject> boardObjects = new List<BoardObject>();
         private Panel _selectedPanel;
+        private bool isResizeMode = false;
+        private bool isResizing = false; // Czy obiekt jest aktualnie skalowany
+        private Point resizeStartPoint; // Punkt początkowy kliknięcia
+        private Size originalSize; // Oryginalny rozmiar podczas skalowania
+
 
         private int gridSpacing = 20;
         private int previousGridSpacing = -1; // -1 oznacza, że nie ma poprzedniej wartości przy pierwszym uruchomieniu
@@ -42,10 +47,27 @@ namespace InteractiveMapControl.cControl
 
             DisplayObjectInfo();
 
+            buttonResizeMode.Click += ButtonResizeMode_Click;
+
 
             AddObject("Hala", 500, 200, 20, 20, true, 0);
             AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
             AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
+        }
+
+        private void ButtonResizeMode_Click(object sender, EventArgs e)
+        {
+            isResizeMode = !isResizeMode;
+
+            if (isResizeMode)
+            {
+                buttonResizeMode.BackColor = Color.LightGreen;
+            }
+            else
+            {
+                buttonResizeMode.BackColor = SystemColors.Control;
+            }
+
         }
         private void BackgroundPictureBox_MouseWheel(object sender, MouseEventArgs e)
         {
@@ -62,6 +84,7 @@ namespace InteractiveMapControl.cControl
                 UpdateGrid();
             }
         }
+
 
         private void UpdateObjectSizes()
         {
@@ -188,6 +211,8 @@ namespace InteractiveMapControl.cControl
             uiPanel.MouseMove += Rectangle_MouseMove;
             uiPanel.MouseUp += Rectangle_MouseUp;
             uiPanel.DoubleClick += Rectangle_DoubleClick;
+            uiPanel.MouseEnter += Rectangle_MouseEnter;
+            uiPanel.MouseLeave += Rectangle_MouseLeave;
 
             backgroundPictureBox.Controls.Add(uiPanel);
 
@@ -253,37 +278,78 @@ namespace InteractiveMapControl.cControl
 
         private void Rectangle_MouseDown(object sender, MouseEventArgs e)
         {
-            _draggedControl = sender as Control;
-            _dragStartPoint = e.Location;
+            if (isResizeMode && e.Button == MouseButtons.Left)
+            {
+                var panel = sender as Panel;
+                if (panel != null)
+                {
+                    // Sprawdzamy, czy użytkownik kliknął w róg (dolny prawy)
+                    var boardObject = panel.Tag as BoardObject;
+                    if (boardObject != null)
+                    {
+                        var bottomRightCorner = new Rectangle(panel.Width - 10, panel.Height - 10, 10, 10);
+                        if (bottomRightCorner.Contains(e.Location))
+                        {
+                            isResizing = true;
+                            resizeStartPoint = e.Location;
+                            originalSize = panel.Size;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                _draggedControl = sender as Control;
+                _dragStartPoint = e.Location;
+            }
         }
 
         private void Rectangle_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_draggedControl != null && e.Button == MouseButtons.Left)
+            if (isResizeMode && isResizing)
             {
-                // Obliczamy nową pozycję obiektu
+                var panel = sender as Panel;
+                if (panel != null)
+                {
+                    // Obliczamy nowy rozmiar
+                    int newWidth = originalSize.Width + (e.X - resizeStartPoint.X);
+                    int newHeight = originalSize.Height + (e.Y - resizeStartPoint.Y);
+
+                    // Zapewniamy minimalne wymiary
+                    newWidth = Math.Max(gridSpacing, newWidth);
+                    newHeight = Math.Max(gridSpacing, newHeight);
+
+                    // Zaokrąglamy do najbliższej linii siatki
+                    newWidth = (newWidth / gridSpacing) * gridSpacing;
+                    newHeight = (newHeight / gridSpacing) * gridSpacing;
+
+                    // Aktualizujemy UI
+                    panel.Size = new Size(newWidth, newHeight);
+
+                    // Aktualizujemy rozmiar obiektu
+                    var boardObject = panel.Tag as BoardObject;
+                    if (boardObject != null)
+                    {
+                        boardObject.OriginalSize = new Size(newWidth, newHeight);
+                    }
+                }
+            }
+            else if (_draggedControl != null && e.Button == MouseButtons.Left)
+            {
+                // Normalne przeciąganie obiektu
                 int newX = _draggedControl.Left + e.X - _dragStartPoint.X;
                 int newY = _draggedControl.Top + e.Y - _dragStartPoint.Y;
 
-                // Zaokrąglamy do najbliższej linii siatki
-                int nearestXDown = (newX / gridSpacing) * gridSpacing;  // Zaokrąglamy w dół
-                int nearestXUp = ((newX + gridSpacing - 1) / gridSpacing) * gridSpacing;  // Zaokrąglamy w górę
-                newX = Math.Abs(newX - nearestXDown) < Math.Abs(newX - nearestXUp) ? nearestXDown : nearestXUp;
+                newX = (newX / gridSpacing) * gridSpacing;
+                newY = (newY / gridSpacing) * gridSpacing;
 
-                int nearestYDown = (newY / gridSpacing) * gridSpacing;  // Zaokrąglamy w dół
-                int nearestYUp = ((newY + gridSpacing - 1) / gridSpacing) * gridSpacing;  // Zaokrąglamy w górę
-                newY = Math.Abs(newY - nearestYDown) < Math.Abs(newY - nearestYUp) ? nearestYDown : nearestYUp;
+                _draggedControl.Left = newX;
+                _draggedControl.Top = newY;
 
-                // Przypisujemy nowe wartości lokalizacji
-                BoardObject draggedObject = _draggedControl.Tag as BoardObject;
+                var draggedObject = _draggedControl.Tag as BoardObject;
                 if (draggedObject != null)
                 {
-                    // Aktualizacja lokalizacji obiektu
-                    draggedObject.OriginalLocation = new Point(newX, newY); // Aktualizujemy oryginalną lokalizację
-
-                    // Ustawienie nowej pozycji w UI
-                    _draggedControl.Left = newX;
-                    _draggedControl.Top = newY;
+                    draggedObject.OriginalLocation = new Point(newX, newY);
                 }
             }
         }
@@ -292,11 +358,38 @@ namespace InteractiveMapControl.cControl
 
         private void Rectangle_MouseUp(object sender, MouseEventArgs e)
         {
-            _draggedControl = null;
+            if (isResizeMode && isResizing)
+            {
+                isResizing = false;
+            }
+            else
+            {
+                _draggedControl = null;
+            }
 
-            // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
-            DisplayObjectInfo();
+            DisplayObjectInfo(); // Odświeżanie panelu debugowania
         }
+
+        private void Rectangle_MouseEnter(object sender, EventArgs e)
+        {
+            if (isResizeMode)
+            {
+                var panel = sender as Panel;
+                if (panel != null)
+                {
+                    Cursor = Cursors.SizeNWSE; // Ustawiamy kursor na wskaźnik skalowania
+                }
+            }
+        }
+
+        private void Rectangle_MouseLeave(object sender, EventArgs e)
+        {
+            if (isResizeMode)
+            {
+                Cursor = Cursors.Default; // Przywracamy domyślny kursor
+            }
+        }
+
 
 
         private void UpdateZIndices()
