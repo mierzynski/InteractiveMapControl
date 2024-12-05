@@ -28,7 +28,6 @@ namespace InteractiveMapControl.cControl
 
 
         private int gridSpacing = 20;
-        private int previousGridSpacing = -1; // -1 oznacza, że nie ma poprzedniej wartości przy pierwszym uruchomieniu
         private Bitmap gridBitmap;
 
         public MapControl()
@@ -51,8 +50,8 @@ namespace InteractiveMapControl.cControl
 
 
             AddObject("Hala", 500, 200, 20, 20, true, 0);
-            AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
-            AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
+            //AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
+            //AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
         }
 
         private void ButtonResizeMode_Click(object sender, EventArgs e)
@@ -136,25 +135,6 @@ namespace InteractiveMapControl.cControl
             axisXPanel.Invalidate();
             axisYPanel.Invalidate();
 
-            // Jeśli wartość gridSpacing zmieniła się, dostosowujemy pozycje obiektów
-            if (previousGridSpacing != -1)
-            {
-                int difference = gridSpacing - previousGridSpacing;
-
-                foreach (var boardObject in boardObjects)
-                {
-                    Point newLocation = boardObject.OriginalLocation;
-
-                    newLocation.X += difference;
-                    newLocation.Y += difference;
-
-
-                    boardObject.OriginalLocation = newLocation;
-                    boardObject.UIElement.Location = newLocation;
-                }
-            }
-
-            previousGridSpacing = gridSpacing;
             UpdateObjectSizes();
         }
 
