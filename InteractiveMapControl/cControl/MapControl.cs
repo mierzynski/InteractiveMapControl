@@ -34,22 +34,23 @@ namespace InteractiveMapControl.cControl
         {
             InitializeComponent();
 
+            backgroundPictureBox.Size = new Size(4000, 4000); // 100m x 100m przy 20px = 0.5m
             backgroundPictureBox.SizeMode = PictureBoxSizeMode.Normal;
             backgroundPictureBox.BackColor = Color.White;
 
+
             backgroundPictureBox.MouseWheel += BackgroundPictureBox_MouseWheel;
+            panelScroll.Scroll += BackgroundPictureBox_Scroll;
 
             UpdateGrid();
-
-            axisXPanel.Paint += AxisXPanel_Paint;
-            axisYPanel.Paint += AxisYPanel_Paint;
+            backgroundPictureBox.Paint += AddAxes_Paint;
 
             DisplayObjectInfo();
 
             buttonResizeMode.Click += ButtonResizeMode_Click;
 
 
-            AddObject("Hala", 500, 200, 20, 20, true, 0);
+            //AddObject("Hala", 500, 200, 20, 20, true, 0);
             //AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
             //AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
         }
@@ -74,13 +75,14 @@ namespace InteractiveMapControl.cControl
             {
                 if (e.Delta > 0)
                 {
-                    gridSpacing = Math.Min(gridSpacing + 5, 100); // Maksymalny odstęp: 100
+                    gridSpacing = Math.Min(gridSpacing + 5, 50);
                 }
                 else if (e.Delta < 0)
                 {
-                    gridSpacing = Math.Max(gridSpacing - 5, 5); // Minimalny odstęp: 5
+                    gridSpacing = Math.Max(gridSpacing - 5, 15);
                 }
                 UpdateGrid();
+                DisplayObjectInfo();
             }
         }
 
@@ -129,18 +131,102 @@ namespace InteractiveMapControl.cControl
 
         private void UpdateGrid()
         {
+            int gridUnits = 200; // 100m / 0.5m = 200 jednostek
+            int newSize = Math.Min((gridUnits * gridSpacing), 10000);
+
+            backgroundPictureBox.Size = new Size(newSize, newSize);
+
+
             gridBitmap = GenerateGridBitmap(backgroundPictureBox.Width, backgroundPictureBox.Height, gridSpacing);
             backgroundPictureBox.Image = gridBitmap;
 
-            axisXPanel.Invalidate();
-            axisYPanel.Invalidate();
-
+            backgroundPictureBox.Invalidate();
             UpdateObjectSizes();
+            if (yAxisPanel != null)
+            {
+                yAxisPanel.Height = backgroundPictureBox.Height - 25;
+            }
+        }
+
+        private Panel yAxisPanel;
+        private int scrollOffsetX = 0;
+        private Panel xAxisPanel;
+        private int scrollOffsetY = 0;
+
+        private void AddAxes_Paint(object sender, PaintEventArgs e)
+        {
+            if (yAxisPanel == null)
+            {
+                yAxisPanel = new Panel();
+
+                yAxisPanel.Size = new Size(25, backgroundPictureBox.Height - 25);
+
+                backgroundPictureBox.Controls.Add(yAxisPanel);
+                yAxisPanel.Paint += YAxisPanel_Paint;
+            }
+            yAxisPanel.Location = new Point(scrollOffsetX, 0);
+
+        }
+        private void BackgroundPictureBox_Scroll(object sender, ScrollEventArgs e)
+        {
+            if (e.ScrollOrientation == ScrollOrientation.HorizontalScroll)
+            {
+                scrollOffsetX = e.NewValue;
+                Invalidate();
+            }
+        }
+
+        private void YAxisPanel_Paint(object sender, PaintEventArgs e)
+        {
+            var panel = sender as Panel;
+            if (panel == null) return;
+
+            Graphics g = e.Graphics;
+
+            int panelHeight = panel.Height;
+            int panelWidth = panel.Width;
+
+            using (Pen verticalLinePen = new Pen(Color.Black, 2))
+            using (Pen horizontalLinePen = new Pen(Color.Gray, 1))
+            using (Font font = new Font("Arial", 6))
+            using (Brush textBrush = new SolidBrush(Color.Black))
+            {
+                int verticalLineX = panelWidth;
+                g.DrawLine(verticalLinePen, verticalLineX, 10, verticalLineX, panelHeight - 5);
+
+                int spacing = gridSpacing;
+                int labelCounter = 0;
+
+                for (int y = 10; y < panelHeight; y += spacing)
+                {
+                    int horizontalLineWidth = panelWidth / 3;
+                    g.DrawLine(horizontalLinePen, verticalLineX - horizontalLineWidth, y, verticalLineX, y);
+
+                    if ((labelCounter % 2) == 0)
+                    {
+                        string labelText = (labelCounter / 2).ToString();
+                        SizeF textSize = g.MeasureString(labelText, font);
+
+                        g.DrawString(
+                            labelText,
+                            font,
+                            textBrush,
+                            verticalLineX - horizontalLineWidth - textSize.Width - 2,
+                            y - textSize.Height / 2);
+                    }
+
+                    labelCounter++;
+                }
+            }
         }
 
 
         private Bitmap GenerateGridBitmap(int width, int height, int spacing)
         {
+            // Sprawdzam, czy szerokość i wysokość nie przekraczają maksymalnych limitów
+            width = Math.Min(width, 10000);
+            height = Math.Min(height, 10000);
+
             Bitmap bitmap = new Bitmap(width, height);
             using (Graphics g = Graphics.FromImage(bitmap))
             {
@@ -149,16 +235,18 @@ namespace InteractiveMapControl.cControl
                 // Pióro dla linii siatki
                 using (Pen gridPen = new Pen(Color.LightGray, 1))
                 {
+                    int offset = 25;
+
                     // Rysowanie linii pionowych
-                    for (int x = 0; x < width; x += spacing)
+                    for (int x = offset; x < width; x += spacing)
                     {
-                        g.DrawLine(gridPen, x, 0, x, height);
+                        g.DrawLine(gridPen, x, 10, x, height - offset);
                     }
 
                     // Rysowanie linii poziomych
-                    for (int y = 0; y < height; y += spacing)
+                    for (int y = 10; y < height - offset; y += spacing)
                     {
-                        g.DrawLine(gridPen, 0, y, width, y);
+                        g.DrawLine(gridPen, offset, y, width, y);
                     }
                 }
             }
@@ -245,6 +333,8 @@ namespace InteractiveMapControl.cControl
         // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
         private void DisplayObjectInfo()
         {
+            var horizontalVisible = panelScroll.HorizontalScroll.Visible;
+            var verticalVisible = panelScroll.VerticalScroll.Visible;
             listBox.Items.Clear();
 
             foreach (var obj in boardObjects)
@@ -254,6 +344,16 @@ namespace InteractiveMapControl.cControl
 
                 listBox.Items.Add($"ID: {obj.ID}, Location: {obj.OriginalLocation}, Parent ID: {parentInfo}, Children IDs: {childrenInfo}");
             }
+
+            listBox.Items.Add($"PictureBox size: {backgroundPictureBox.Size}");
+            listBox.Items.Add($"Bitmap size: {gridBitmap.Size}");
+            listBox.Items.Add($"gridSpacing: {gridSpacing}");
+            if (yAxisPanel != null)
+            {
+            listBox.Items.Add($"yAxisPanel: {yAxisPanel.Size}");
+
+            }
+
         }
 
         private void Rectangle_MouseDown(object sender, MouseEventArgs e)
@@ -405,80 +505,6 @@ namespace InteractiveMapControl.cControl
 
                 _selectedPanel.BackColor = Color.LightBlue;
             }
-        }
-
-        private void DrawAxis(Graphics g, bool isXAxis)
-        {
-            Pen thickPen = new Pen(Color.Black, 2); // Grube kreski dla etykiet
-            Pen thinPen = new Pen(Color.Black, 1); // Cienkie kreski pomocnicze
-            Font labelFont = new Font("Arial", 6);
-
-            int panelWidth = isXAxis ? axisXPanel.Width : axisYPanel.Width;
-            int panelHeight = isXAxis ? axisXPanel.Height : axisYPanel.Height;
-
-            int spacing = gridSpacing;
-
-            // Rysowanie głównej linii osi X (u dołu) lub Y (po lewej)
-            if (isXAxis)
-            {
-                g.DrawLine(thinPen, 0, panelHeight - 1, panelWidth, panelHeight - 1);
-            }
-            else
-            {
-                g.DrawLine(thinPen, 0, 0, 0, panelHeight);
-            }
-
-            // Rysowanie linii i etykiet
-            for (int i = 0; i <= (isXAxis ? panelWidth : panelHeight) / spacing; i++)
-            {
-                int position = i * spacing;
-
-                // Wybór stylu kreski
-                Pen currentPen = (i % 2 == 0) ? thickPen : thinPen;
-
-                // Rysowanie kreski
-                if (isXAxis)
-                {
-                    g.DrawLine(currentPen, position, panelHeight - 10, position, panelHeight);
-                }
-                else
-                {
-                    g.DrawLine(currentPen, 0, position, 10, position);
-                }
-
-                // Rysowanie etykiet tylko co drugą kreskę
-                if (i % 2 == 0) // Co drugą kreskę, gdy indeks `i` jest parzysty
-                {
-                    string label = (i / 2).ToString(); // Etykiety numerowane sekwencyjnie, np. 0, 1, 2...
-
-                    if (isXAxis)
-                    {
-                        // Etykiety dla osi X
-                        SizeF labelSize = g.MeasureString(label, labelFont);
-                        float labelX = position - (labelSize.Width / 2);
-                        float labelY = panelHeight - 20;
-                        g.DrawString(label, labelFont, Brushes.Black, labelX, labelY);
-                    }
-                    else
-                    {
-                        // Etykiety dla osi Y
-                        SizeF labelSize = g.MeasureString(label, labelFont);
-                        float labelX = 12; // Stała wartość dla lewego marginesu osi Y
-                        float labelY = position - (labelSize.Height / 2);
-                        g.DrawString(label, labelFont, Brushes.Black, labelX, labelY);
-                    }
-                }
-            }
-        }
-
-        private void AxisXPanel_Paint(object sender, PaintEventArgs e)
-        {
-            DrawAxis(e.Graphics, isXAxis: true);
-        }
-
-        private void AxisYPanel_Paint(object sender, PaintEventArgs e)
-        {
-            DrawAxis(e.Graphics, isXAxis: false);
         }
     }
 }
