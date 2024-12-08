@@ -51,7 +51,7 @@ namespace InteractiveMapControl.cControl
             buttonResizeMode.Click += ButtonResizeMode_Click;
 
 
-            //AddObject("Hala", 500, 200, 20, 20, true, 0);
+            AddObject("Hala", 500, 200, 25, 10, true, 0);
             //AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
             //AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
         }
@@ -140,8 +140,6 @@ namespace InteractiveMapControl.cControl
                 boardObject.UIElement.Size = new Size(newWidth, newHeight);
             }
         }
-
-
 
 
 
@@ -368,43 +366,11 @@ namespace InteractiveMapControl.cControl
             return bitmap;
         }
 
-        //private Bitmap GenerateGridBitmap(int width, int height, int spacing)
-        //{
-        //    // Sprawdzam, czy szerokość i wysokość nie przekraczają maksymalnych limitów
-        //    width = Math.Min(width, 10000);
-        //    height = Math.Min(height, 10000);
-
-        //    Bitmap bitmap = new Bitmap(width, height);
-        //    using (Graphics g = Graphics.FromImage(bitmap))
-        //    {
-        //        g.Clear(Color.White);
-
-        //        // Pióro dla linii siatki
-        //        using (Pen gridPen = new Pen(Color.LightGray, 1))
-        //        {
-        //            int offset = 25;
-
-        //            int totalLines = 101 * 2 - 1;
-
-        //            // Rysowanie linii pionowych (dla etykiet i pomiędzy nimi)
-        //            for (int x = 0; x < totalLines; x++)
-        //            {
-        //                g.DrawLine(gridPen, x, 10, x, height - 20);
-        //            }
-
-        //            // Rysowanie linii poziomych
-        //            for (int y = 10; y < height - offset; y += spacing)
-        //            {
-        //                g.DrawLine(gridPen, offset, y, width, y);
-        //            }
-        //        }
-        //    }
-        //    return bitmap;
-        //}
-
-
         public void AddObject(string label, int width, int height, int x, int y, bool positionBottom, int id, int? parentId = null)
         {
+            if (x < 25) x = 25;
+            if (y < 10) y = 10;
+
             int currentZIndex = backgroundPictureBox.Controls.Count;
 
             var uiPanel = new Panel
