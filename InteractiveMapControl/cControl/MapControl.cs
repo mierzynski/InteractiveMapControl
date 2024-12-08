@@ -34,13 +34,14 @@ namespace InteractiveMapControl.cControl
         {
             InitializeComponent();
 
-            backgroundPictureBox.Size = new Size(4000, 4000); // 100m x 100m przy 20px = 0.5m
+            backgroundPictureBox.Size = new Size(4035, 4035); // 100m x 100m przy 20px = 0.5m
             backgroundPictureBox.SizeMode = PictureBoxSizeMode.Normal;
             backgroundPictureBox.BackColor = Color.White;
 
 
             backgroundPictureBox.MouseWheel += BackgroundPictureBox_MouseWheel;
             panelScroll.Scroll += BackgroundPictureBox_Scroll;
+
 
             UpdateGrid();
             backgroundPictureBox.Paint += AddAxes_Paint;
@@ -132,7 +133,7 @@ namespace InteractiveMapControl.cControl
         private void UpdateGrid()
         {
             int gridUnits = 200; // 100m / 0.5m = 200 jednostek
-            int newSize = Math.Min((gridUnits * gridSpacing), 10000);
+            int newSize = Math.Min((gridUnits * gridSpacing) + 35, 10035);
 
             backgroundPictureBox.Size = new Size(newSize, newSize);
 
@@ -144,7 +145,11 @@ namespace InteractiveMapControl.cControl
             UpdateObjectSizes();
             if (yAxisPanel != null)
             {
-                yAxisPanel.Height = backgroundPictureBox.Height - 25;
+                yAxisPanel.Height = backgroundPictureBox.Height;
+            }
+            if (xAxisPanel != null)
+            {
+                xAxisPanel.Width = backgroundPictureBox.Width;
             }
         }
 
@@ -158,22 +163,36 @@ namespace InteractiveMapControl.cControl
             if (yAxisPanel == null)
             {
                 yAxisPanel = new Panel();
-
-                yAxisPanel.Size = new Size(25, backgroundPictureBox.Height - 25);
-
+                yAxisPanel.Size = new Size(25, 15 + gridSpacing * 200);
                 backgroundPictureBox.Controls.Add(yAxisPanel);
                 yAxisPanel.Paint += YAxisPanel_Paint;
             }
             yAxisPanel.Location = new Point(scrollOffsetX, 0);
 
+            if (xAxisPanel == null)
+            {
+                xAxisPanel = new Panel();
+                xAxisPanel.Size = new Size(backgroundPictureBox.Width, 25);
+                backgroundPictureBox.Controls.Add(xAxisPanel);
+                xAxisPanel.Paint += XAxisPanel_Paint;
+            }
+            int xAxisYPosition = yAxisPanel.Height;
+            xAxisPanel.Location = new Point(0, (panelScroll.Height - (xAxisPanel.Height + 15)+ scrollOffsetY));
+
+            yAxisPanel.BringToFront();
+            xAxisPanel.BringToFront();
         }
         private void BackgroundPictureBox_Scroll(object sender, ScrollEventArgs e)
         {
             if (e.ScrollOrientation == ScrollOrientation.HorizontalScroll)
             {
                 scrollOffsetX = e.NewValue;
-                Invalidate();
             }
+            else if (e.ScrollOrientation == ScrollOrientation.VerticalScroll)
+            {
+                scrollOffsetY = e.NewValue;
+            }
+            Invalidate();
         }
 
         private void YAxisPanel_Paint(object sender, PaintEventArgs e)
@@ -192,19 +211,28 @@ namespace InteractiveMapControl.cControl
             using (Brush textBrush = new SolidBrush(Color.Black))
             {
                 int verticalLineX = panelWidth;
-                g.DrawLine(verticalLinePen, verticalLineX, 10, verticalLineX, panelHeight - 5);
+
+                int maxLabels = 100;
+                int maxVerticalHeight = 10 + gridSpacing * (maxLabels * 2);
+
+                g.DrawLine(verticalLinePen, verticalLineX, 10, verticalLineX, maxVerticalHeight);
 
                 int spacing = gridSpacing;
                 int labelCounter = 0;
 
-                for (int y = 10; y < panelHeight; y += spacing)
+                for (int y = 10; y <= maxVerticalHeight; y += spacing)
                 {
                     int horizontalLineWidth = panelWidth / 3;
+
+
                     g.DrawLine(horizontalLinePen, verticalLineX - horizontalLineWidth, y, verticalLineX, y);
+
 
                     if ((labelCounter % 2) == 0)
                     {
-                        string labelText = (labelCounter / 2).ToString();
+                        int labelValue = labelCounter / 2;
+                        string labelText = labelValue.ToString();
+
                         SizeF textSize = g.MeasureString(labelText, font);
 
                         g.DrawString(
@@ -213,6 +241,63 @@ namespace InteractiveMapControl.cControl
                             textBrush,
                             verticalLineX - horizontalLineWidth - textSize.Width - 2,
                             y - textSize.Height / 2);
+                    }
+
+                    labelCounter++;
+                }
+            }
+        }
+
+        private void XAxisPanel_Paint(object sender, PaintEventArgs e)
+        {
+            var panel = sender as Panel;
+            if (panel == null) return;
+
+            Graphics g = e.Graphics;
+
+            int panelWidth = panel.Width;
+            int panelHeight = panel.Height;
+
+            using (Pen horizontalLinePen = new Pen(Color.Black, 2))
+            using (Pen verticalLinePen = new Pen(Color.Gray, 1))
+            using (Font font = new Font("Arial", 6))
+            using (Brush textBrush = new SolidBrush(Color.Black))
+            {
+                int horizontalLineY = 0;
+
+                int maxLabels = 100;
+                int maxHorizontalWidth = 25 + gridSpacing * (maxLabels * 2);
+
+                g.DrawLine(horizontalLinePen, 25, horizontalLineY, maxHorizontalWidth, horizontalLineY);
+
+                int spacing = gridSpacing;
+                int labelCounter = 0;
+
+                for (int x = 25; x <= maxHorizontalWidth; x += spacing)
+                {
+                    int verticalLineHeight = panelHeight / 3;
+
+                    g.DrawLine(verticalLinePen, x, horizontalLineY, x, horizontalLineY + verticalLineHeight);
+
+
+                    if ((labelCounter % 2) == 0)
+                    {
+                        int labelValue = labelCounter / 2;
+                        string labelText = labelValue.ToString();
+
+                        SizeF textSize = g.MeasureString(labelText, font);
+
+                        g.DrawString(
+                            labelText,
+                            font,
+                            textBrush,
+                            x - textSize.Width / 2,
+                            horizontalLineY + verticalLineHeight + 2);
+                    }
+
+                    if(labelCounter == 100)
+                    {
+                        //MessageBox.Show(x.ToString());
                     }
 
                     labelCounter++;
@@ -240,7 +325,7 @@ namespace InteractiveMapControl.cControl
                     // Rysowanie linii pionowych
                     for (int x = offset; x < width; x += spacing)
                     {
-                        g.DrawLine(gridPen, x, 10, x, height - offset);
+                        g.DrawLine(gridPen, x, 10, x, height - 20);
                     }
 
                     // Rysowanie linii poziomych
@@ -252,6 +337,41 @@ namespace InteractiveMapControl.cControl
             }
             return bitmap;
         }
+
+        //private Bitmap GenerateGridBitmap(int width, int height, int spacing)
+        //{
+        //    // Sprawdzam, czy szerokość i wysokość nie przekraczają maksymalnych limitów
+        //    width = Math.Min(width, 10000);
+        //    height = Math.Min(height, 10000);
+
+        //    Bitmap bitmap = new Bitmap(width, height);
+        //    using (Graphics g = Graphics.FromImage(bitmap))
+        //    {
+        //        g.Clear(Color.White);
+
+        //        // Pióro dla linii siatki
+        //        using (Pen gridPen = new Pen(Color.LightGray, 1))
+        //        {
+        //            int offset = 25;
+
+        //            int totalLines = 101 * 2 - 1;
+
+        //            // Rysowanie linii pionowych (dla etykiet i pomiędzy nimi)
+        //            for (int x = 0; x < totalLines; x++)
+        //            {
+        //                g.DrawLine(gridPen, x, 10, x, height - 20);
+        //            }
+
+        //            // Rysowanie linii poziomych
+        //            for (int y = 10; y < height - offset; y += spacing)
+        //            {
+        //                g.DrawLine(gridPen, offset, y, width, y);
+        //            }
+        //        }
+        //    }
+        //    return bitmap;
+        //}
+
 
         public void AddObject(string label, int width, int height, int x, int y, bool positionBottom, int id, int? parentId = null)
         {
@@ -350,8 +470,8 @@ namespace InteractiveMapControl.cControl
             listBox.Items.Add($"gridSpacing: {gridSpacing}");
             if (yAxisPanel != null)
             {
-            listBox.Items.Add($"yAxisPanel: {yAxisPanel.Size}");
-
+                listBox.Items.Add($"yAxisPanel: {yAxisPanel.Size}");
+                listBox.Items.Add($"xAxisPanel: {xAxisPanel.Size}");
             }
 
         }
