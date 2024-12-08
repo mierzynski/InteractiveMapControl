@@ -70,8 +70,37 @@ namespace InteractiveMapControl.cControl
             }
 
         }
+        public static int Clamp(int value, int min, int max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+
         private void BackgroundPictureBox_MouseWheel(object sender, MouseEventArgs e)
         {
+            int scrollStep = 0;
+            int scrollOffsetYMin = 0;
+            int scrollOffsetYMax = 0;
+
+            scrollOffsetYMax = (gridSpacing - 15) / 5 * 1000 + 2752;
+            scrollStep = Math.Abs(e.Delta);
+            int scrollChange = e.Delta > 0 ? -scrollStep : scrollStep;
+            int newScrollOffsetY = scrollOffsetY + scrollChange;
+
+            newScrollOffsetY = Clamp(newScrollOffsetY, scrollOffsetYMin, scrollOffsetYMax);
+
+            var scrollArgs = new ScrollEventArgs(
+                e.Delta > 0 ? ScrollEventType.SmallDecrement : ScrollEventType.SmallIncrement,
+                scrollOffsetY,
+                newScrollOffsetY,
+                ScrollOrientation.VerticalScroll
+            );
+
+            scrollOffsetY = newScrollOffsetY;
+
+            BackgroundPictureBox_Scroll(sender, scrollArgs);
+
             if (ModifierKeys.HasFlag(Keys.Control))
             {
                 if (e.Delta > 0)
@@ -192,6 +221,7 @@ namespace InteractiveMapControl.cControl
             {
                 scrollOffsetY = e.NewValue;
             }
+            DisplayObjectInfo();
             Invalidate();
         }
 
@@ -470,8 +500,9 @@ namespace InteractiveMapControl.cControl
             listBox.Items.Add($"gridSpacing: {gridSpacing}");
             if (yAxisPanel != null)
             {
-                listBox.Items.Add($"yAxisPanel: {yAxisPanel.Size}");
-                listBox.Items.Add($"xAxisPanel: {xAxisPanel.Size}");
+                listBox.Items.Add($"yAxisPanel: {yAxisPanel.Location}");
+                listBox.Items.Add($"xAxisPanel: {xAxisPanel.Location}");
+                listBox.Items.Add($"scrollOffsetY: {scrollOffsetY}");
             }
 
         }
