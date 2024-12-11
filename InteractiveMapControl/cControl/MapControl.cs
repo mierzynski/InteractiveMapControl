@@ -123,19 +123,15 @@ namespace InteractiveMapControl.cControl
 
             foreach (var boardObject in boardObjects)
             {
-                // Skalowanie rozmiaru
                 int newWidth = (int)(boardObject.OriginalSize.Width * scaleFactor);
                 int newHeight = (int)(boardObject.OriginalSize.Height * scaleFactor);
 
-                // Skalowanie oryginalnej lokalizacji
                 int newX = (int)(boardObject.OriginalLocation.X * scaleFactor);
                 int newY = (int)(boardObject.OriginalLocation.Y * scaleFactor);
 
-                // Zaokrąglamy do najbliższej linii siatki
-                newX = (newX / gridSpacing) * gridSpacing;  // Zaokrąglamy w dół
-                newY = (newY / gridSpacing) * gridSpacing;  // Zaokrąglamy w dół
+                newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
+                newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
 
-                // Aktualizacja właściwości UI
                 boardObject.UIElement.Location = new Point(newX, newY);
                 boardObject.UIElement.Size = new Size(newWidth, newHeight);
             }
@@ -533,12 +529,18 @@ namespace InteractiveMapControl.cControl
             }
             else if (_draggedControl != null && e.Button == MouseButtons.Left)
             {
-                // Normalne przeciąganie obiektu
+
                 int newX = _draggedControl.Left + e.X - _dragStartPoint.X;
                 int newY = _draggedControl.Top + e.Y - _dragStartPoint.Y;
 
-                newX = (newX / gridSpacing) * gridSpacing;
-                newY = (newY / gridSpacing) * gridSpacing;
+                newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
+                newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
+
+                int maxX = backgroundPictureBox.Width - _draggedControl.Width;
+                int maxY = backgroundPictureBox.Height - _draggedControl.Height;
+
+                newX = Math.Max(25, Math.Min(newX, maxX));
+                newY = Math.Max(10, Math.Min(newY, maxY));
 
                 _draggedControl.Left = newX;
                 _draggedControl.Top = newY;
@@ -549,6 +551,7 @@ namespace InteractiveMapControl.cControl
                     draggedObject.OriginalLocation = new Point(newX, newY);
                 }
             }
+
         }
 
 
