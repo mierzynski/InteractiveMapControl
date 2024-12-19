@@ -28,14 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MapControl));
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.buttonResizeMode = new System.Windows.Forms.ToolStripButton();
             this.infoPanel = new System.Windows.Forms.Panel();
             this.listBox = new System.Windows.Forms.ListBox();
             this.backgroundPictureBox = new System.Windows.Forms.PictureBox();
             this.panelScroll = new System.Windows.Forms.Panel();
-            this.toolStrip1.SuspendLayout();
             this.infoPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.backgroundPictureBox)).BeginInit();
             this.panelScroll.SuspendLayout();
@@ -44,23 +41,12 @@
             // toolStrip1
             // 
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.buttonResizeMode});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
             this.toolStrip1.Size = new System.Drawing.Size(647, 25);
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
-            // 
-            // buttonResizeMode
-            // 
-            this.buttonResizeMode.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.buttonResizeMode.Image = ((System.Drawing.Image)(resources.GetObject("buttonResizeMode.Image")));
-            this.buttonResizeMode.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.buttonResizeMode.Name = "buttonResizeMode";
-            this.buttonResizeMode.Size = new System.Drawing.Size(63, 22);
-            this.buttonResizeMode.Text = "trybEdycji";
             // 
             // infoPanel
             // 
@@ -111,8 +97,6 @@
             this.Controls.Add(this.toolStrip1);
             this.Name = "MapControl";
             this.Size = new System.Drawing.Size(647, 505);
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
             this.infoPanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.backgroundPictureBox)).EndInit();
             this.panelScroll.ResumeLayout(false);
@@ -126,7 +110,6 @@
         private System.Windows.Forms.Panel infoPanel;
         private System.Windows.Forms.ListBox listBox;
         private System.Windows.Forms.PictureBox backgroundPictureBox;
-        private System.Windows.Forms.ToolStripButton buttonResizeMode;
         private System.Windows.Forms.Panel panelScroll;
     }
 }

@@ -21,7 +21,6 @@ namespace InteractiveMapControl.cControl
         private Control _draggedControl;
         private List<BoardObject> boardObjects = new List<BoardObject>();
         private Panel _selectedPanel;
-        private bool isResizeMode = false;
         private bool isResizing = false; // Czy obiekt jest aktualnie skalowany
         private Point resizeStartPoint; // Punkt początkowy kliknięcia
         private Size originalSize; // Oryginalny rozmiar podczas skalowania
@@ -38,6 +37,7 @@ namespace InteractiveMapControl.cControl
             backgroundPictureBox.SizeMode = PictureBoxSizeMode.Normal;
             backgroundPictureBox.BackColor = Color.White;
 
+            backgroundPictureBox.Click += BackgroundPictureBox_Click;
 
             backgroundPictureBox.MouseWheel += BackgroundPictureBox_MouseWheel;
             panelScroll.Scroll += BackgroundPictureBox_Scroll;
@@ -48,7 +48,6 @@ namespace InteractiveMapControl.cControl
 
             DisplayObjectInfo();
 
-            buttonResizeMode.Click += ButtonResizeMode_Click;
 
 
             AddObject("Hala", 500, 200, 25, 10, true, 0);
@@ -56,20 +55,6 @@ namespace InteractiveMapControl.cControl
             //AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
         }
 
-        private void ButtonResizeMode_Click(object sender, EventArgs e)
-        {
-            isResizeMode = !isResizeMode;
-
-            if (isResizeMode)
-            {
-                buttonResizeMode.BackColor = Color.LightGreen;
-            }
-            else
-            {
-                buttonResizeMode.BackColor = SystemColors.Control;
-            }
-
-        }
         public static int Clamp(int value, int min, int max)
         {
             if (value < min) return min;
@@ -414,6 +399,7 @@ namespace InteractiveMapControl.cControl
                 ZIndex = currentZIndex,
                 OriginalLocation = new Point(x, y),
                 OriginalSize = new Size(width, height),
+                DefaultBackColor = uiPanel.BackColor
             };
 
 
@@ -468,25 +454,20 @@ namespace InteractiveMapControl.cControl
             }
 
         }
-
         private void Rectangle_MouseDown(object sender, MouseEventArgs e)
         {
-            if (isResizeMode && e.Button == MouseButtons.Left)
+            if (_selectedPanel != null && _selectedPanel == sender as Panel && e.Button == MouseButtons.Left)
             {
-                var panel = sender as Panel;
+                // Sprawdzamy, czy użytkownik kliknął w róg (dolny prawy)
+                var panel = _selectedPanel;
                 if (panel != null)
                 {
-                    // Sprawdzamy, czy użytkownik kliknął w róg (dolny prawy)
-                    var boardObject = panel.Tag as BoardObject;
-                    if (boardObject != null)
+                    var bottomRightCorner = new Rectangle(panel.Width - 10, panel.Height - 10, 10, 10);
+                    if (bottomRightCorner.Contains(e.Location))
                     {
-                        var bottomRightCorner = new Rectangle(panel.Width - 10, panel.Height - 10, 10, 10);
-                        if (bottomRightCorner.Contains(e.Location))
-                        {
-                            isResizing = true;
-                            resizeStartPoint = e.Location;
-                            originalSize = panel.Size;
-                        }
+                        isResizing = true;
+                        resizeStartPoint = e.Location;
+                        originalSize = panel.Size;
                     }
                 }
             }
@@ -499,27 +480,22 @@ namespace InteractiveMapControl.cControl
 
         private void Rectangle_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isResizeMode && isResizing)
+            if (isResizing && _selectedPanel != null)
             {
-                var panel = sender as Panel;
+                var panel = _selectedPanel;
                 if (panel != null)
                 {
-                    // Obliczamy nowy rozmiar
                     int newWidth = originalSize.Width + (e.X - resizeStartPoint.X);
                     int newHeight = originalSize.Height + (e.Y - resizeStartPoint.Y);
 
-                    // Zapewniamy minimalne wymiary
                     newWidth = Math.Max(gridSpacing, newWidth);
                     newHeight = Math.Max(gridSpacing, newHeight);
 
-                    // Zaokrąglamy do najbliższej linii siatki
                     newWidth = (newWidth / gridSpacing) * gridSpacing;
                     newHeight = (newHeight / gridSpacing) * gridSpacing;
 
-                    // Aktualizujemy UI
                     panel.Size = new Size(newWidth, newHeight);
 
-                    // Aktualizujemy rozmiar obiektu
                     var boardObject = panel.Tag as BoardObject;
                     if (boardObject != null)
                     {
@@ -529,7 +505,6 @@ namespace InteractiveMapControl.cControl
             }
             else if (_draggedControl != null && e.Button == MouseButtons.Left)
             {
-
                 int newX = _draggedControl.Left + e.X - _dragStartPoint.X;
                 int newY = _draggedControl.Top + e.Y - _dragStartPoint.Y;
 
@@ -551,14 +526,11 @@ namespace InteractiveMapControl.cControl
                     draggedObject.OriginalLocation = new Point(newX, newY);
                 }
             }
-
         }
-
-
 
         private void Rectangle_MouseUp(object sender, MouseEventArgs e)
         {
-            if (isResizeMode && isResizing)
+            if (isResizing)
             {
                 isResizing = false;
             }
@@ -567,27 +539,21 @@ namespace InteractiveMapControl.cControl
                 _draggedControl = null;
             }
 
-            DisplayObjectInfo(); // Odświeżanie panelu debugowania
+            DisplayObjectInfo();
         }
 
         private void Rectangle_MouseEnter(object sender, EventArgs e)
         {
-            if (isResizeMode)
+            var panel = sender as Panel;
+            if (panel != null && _selectedPanel == panel)
             {
-                var panel = sender as Panel;
-                if (panel != null)
-                {
-                    Cursor = Cursors.SizeNWSE; // Ustawiamy kursor na wskaźnik skalowania
-                }
+                Cursor = Cursors.SizeNWSE;
             }
         }
 
         private void Rectangle_MouseLeave(object sender, EventArgs e)
         {
-            if (isResizeMode)
-            {
-                Cursor = Cursors.Default; // Przywracamy domyślny kursor
-            }
+            Cursor = Cursors.Default;
         }
 
 
@@ -612,19 +578,49 @@ namespace InteractiveMapControl.cControl
 
             if (clickedPanel != null)
             {
-                if (_selectedPanel != null)
+                var clickedObject = clickedPanel.Tag as BoardObject;
+
+                if (_selectedPanel == clickedPanel)
                 {
-                    _selectedPanel.BackColor = Color.LightBlue;
+                    if (clickedObject != null)
+                    {
+                        clickedPanel.BackColor = clickedObject.DefaultBackColor;
+                    }
+                    _selectedPanel = null;
                 }
+                else
+                {
+                    if (_selectedPanel != null)
+                    {
+                        var previousObject = _selectedPanel.Tag as BoardObject;
+                        if (previousObject != null)
+                        {
+                            _selectedPanel.BackColor = previousObject.DefaultBackColor;
+                        }
+                    }
 
-
-                clickedPanel.BackColor = Color.LightGreen;
-                _selectedPanel = clickedPanel;
-
-                MessageBox.Show($"Kliknięto obiekt: {clickedPanel.Controls[0].Text}");
-
-                _selectedPanel.BackColor = Color.LightBlue;
+                    clickedPanel.BackColor = Color.LightGreen;
+                    _selectedPanel = clickedPanel;
+                }
             }
         }
+
+        private void BackgroundPictureBox_Click(object sender, EventArgs e)
+        {
+            if (_selectedPanel != null)
+            {
+                var selectedObject = _selectedPanel.Tag as BoardObject;
+
+                if (selectedObject != null)
+                {
+                    _selectedPanel.BackColor = selectedObject.DefaultBackColor;
+                }
+                _selectedPanel = null;
+            }
+
+            DisplayObjectInfo();
+        }
+
+
     }
 }

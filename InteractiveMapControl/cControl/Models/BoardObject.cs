@@ -20,5 +20,6 @@ namespace InteractiveMapControl.cControl.Models
         public int ZIndex { get; set; }             
         public Point OriginalLocation { get; set; }         
         public Size OriginalSize { get; set; }
+        public Color DefaultBackColor { get; set; }
     }
 }
