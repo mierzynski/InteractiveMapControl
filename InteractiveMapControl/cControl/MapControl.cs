@@ -7,9 +7,7 @@ using InteractiveMapControl.cControl.Models;
 using System.Linq;
 
 /*
-1. Obiekty, które będą tworzone: hala, pomieszczene, regał, przedmiot
 2. Możliwość grupowania obiektów
-3. Możliwość skalowania poprzez przybliżanie
 4. Możliwość kliknięcia na obiekt regał w celu otworzenia okna gdzie będzie wizualizacja regału od przodu
  */
 
@@ -21,9 +19,9 @@ namespace InteractiveMapControl.cControl
         private Control _draggedControl;
         private List<BoardObject> boardObjects = new List<BoardObject>();
         private Panel _selectedPanel;
-        private bool isResizing = false; // Czy obiekt jest aktualnie skalowany
-        private Point resizeStartPoint; // Punkt początkowy kliknięcia
-        private Size originalSize; // Oryginalny rozmiar podczas skalowania
+        private bool isResizing = false;
+        private Point resizeStartPoint;
+        private Size originalSize;
 
 
         private int gridSpacing = 20;
@@ -97,8 +95,9 @@ namespace InteractiveMapControl.cControl
                     gridSpacing = Math.Max(gridSpacing - 5, 15);
                 }
                 UpdateGrid();
-                DisplayObjectInfo();
             }
+
+            DisplayObjectInfo();
         }
 
 
@@ -440,18 +439,20 @@ namespace InteractiveMapControl.cControl
                 string parentInfo = obj.Parent != null ? obj.Parent.ID.ToString() : "Brak rodzica";
                 string childrenInfo = obj.Children.Any() ? string.Join(", ", obj.Children.Select(c => c.ID)) : "Brak dzieci";
 
-                listBox.Items.Add($"ID: {obj.ID}, Location: {obj.OriginalLocation}, Parent ID: {parentInfo}, Children IDs: {childrenInfo}");
+                listBox.Items.Add($"UIElement.Location: {obj.UIElement.Location}");
+                listBox.Items.Add($"OriginalLocation: {obj.OriginalLocation}");
             }
-
-            listBox.Items.Add($"PictureBox size: {backgroundPictureBox.Size}");
-            listBox.Items.Add($"Bitmap size: {gridBitmap.Size}");
-            listBox.Items.Add($"gridSpacing: {gridSpacing}");
-            if (yAxisPanel != null)
-            {
-                listBox.Items.Add($"yAxisPanel: {yAxisPanel.Location}");
-                listBox.Items.Add($"xAxisPanel: {xAxisPanel.Location}");
-                listBox.Items.Add($"scrollOffsetY: {scrollOffsetY}");
-            }
+            
+            listBox.Items.Add($"scaleFactor: {gridSpacing / 20.0f}");
+            //listBox.Items.Add($"PictureBox size: {backgroundPictureBox.Size}");
+            //listBox.Items.Add($"Bitmap size: {gridBitmap.Size}");
+            //listBox.Items.Add($"gridSpacing: {gridSpacing}");
+            //if (yAxisPanel != null)
+            //{
+            //    listBox.Items.Add($"yAxisPanel: {yAxisPanel.Location}");
+            //    listBox.Items.Add($"xAxisPanel: {xAxisPanel.Location}");
+            //    listBox.Items.Add($"scrollOffsetY: {scrollOffsetY}");
+            //}
 
         }
         private void Rectangle_MouseDown(object sender, MouseEventArgs e)
