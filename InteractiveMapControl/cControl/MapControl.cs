@@ -23,8 +23,8 @@ namespace InteractiveMapControl.cControl
         private Point resizeStartPoint;
         private Size originalSize;
 
-
         private int gridSpacing = 20;
+        private int previousGridSpacing = 20;
         private Bitmap gridBitmap;
 
         public MapControl()
@@ -101,24 +101,49 @@ namespace InteractiveMapControl.cControl
         }
 
 
+        //private void UpdateObjectSizes()
+        //{
+        //    float scaleFactor = gridSpacing / 20.0f;
+
+        //    foreach (var boardObject in boardObjects)
+        //    {
+        //        int newWidth = (int)(boardObject.OriginalSize.Width * scaleFactor);
+        //        int newHeight = (int)(boardObject.OriginalSize.Height * scaleFactor);
+
+        //        int newX = (int)(boardObject.OriginalLocation.X * scaleFactor);
+        //        int newY = (int)(boardObject.OriginalLocation.Y * scaleFactor);
+
+        //        newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
+        //        newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
+
+        //        boardObject.UIElement.Location = new Point(newX, newY);
+        //        boardObject.UIElement.Size = new Size(newWidth, newHeight);
+        //    }
+        //}
+
         private void UpdateObjectSizes()
         {
-            float scaleFactor = gridSpacing / 20.0f; // Obliczamy współczynnik skali
-
-            foreach (var boardObject in boardObjects)
+            int differenceGridSpacing = 0;
+            if (gridSpacing != previousGridSpacing)
             {
-                int newWidth = (int)(boardObject.OriginalSize.Width * scaleFactor);
-                int newHeight = (int)(boardObject.OriginalSize.Height * scaleFactor);
+                differenceGridSpacing = gridSpacing - previousGridSpacing;
+                previousGridSpacing = gridSpacing;
+                foreach (var boardObject in boardObjects)
+                {
+                    int newWidth = (int)(boardObject.OriginalSize.Width + differenceGridSpacing);
+                    int newHeight = (int)(boardObject.OriginalSize.Height + differenceGridSpacing);
 
-                int newX = (int)(boardObject.OriginalLocation.X * scaleFactor);
-                int newY = (int)(boardObject.OriginalLocation.Y * scaleFactor);
+                    int newX = (int)(boardObject.OriginalLocation.X + differenceGridSpacing);
+                    int newY = (int)(boardObject.OriginalLocation.Y + differenceGridSpacing);
 
-                newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
-                newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
+                    newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
+                    newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
 
-                boardObject.UIElement.Location = new Point(newX, newY);
-                boardObject.UIElement.Size = new Size(newWidth, newHeight);
+                    boardObject.UIElement.Location = new Point(newX, newY);
+                    boardObject.UIElement.Size = new Size(newWidth, newHeight);
+                }
             }
+
         }
 
 
@@ -442,11 +467,9 @@ namespace InteractiveMapControl.cControl
                 listBox.Items.Add($"UIElement.Location: {obj.UIElement.Location}");
                 listBox.Items.Add($"OriginalLocation: {obj.OriginalLocation}");
             }
-            
-            listBox.Items.Add($"scaleFactor: {gridSpacing / 20.0f}");
             //listBox.Items.Add($"PictureBox size: {backgroundPictureBox.Size}");
             //listBox.Items.Add($"Bitmap size: {gridBitmap.Size}");
-            //listBox.Items.Add($"gridSpacing: {gridSpacing}");
+            listBox.Items.Add($"gridSpacing: {gridSpacing}");
             //if (yAxisPanel != null)
             //{
             //    listBox.Items.Add($"yAxisPanel: {yAxisPanel.Location}");
