@@ -94,7 +94,10 @@ namespace InteractiveMapControl.cControl
                 {
                     gridSpacing = Math.Max(gridSpacing - 5, 15);
                 }
-                UpdateGrid();
+                if (gridSpacing != previousGridSpacing)
+                {
+                    UpdateGrid();
+                }
             }
 
             DisplayObjectInfo();
@@ -145,22 +148,6 @@ namespace InteractiveMapControl.cControl
             }
 
         }
-
-
-
-        //PROPOZYCJA CHATGPT
-        //Domyślnie zdarzenie MouseWheel może być przechwycone przez kontener nadrzędny kontrolki.
-        //Aby mieć pewność, że zdarzenie trafi do backgroundPictureBox, nadpisz metodę OnMouseWheel
-        //w klasie MapControl i wywołaj zdarzenie na backgroundPictureBox
-
-        ////protected override void OnMouseWheel(MouseEventArgs e)
-        //{
-        //    base.OnMouseWheel(e);
-
-        //    // Przekierowanie zdarzenia MouseWheel do backgroundPictureBox
-        //    backgroundPictureBox?.Focus();
-        //    backgroundPictureBox?.InvokeOnClick(backgroundPictureBox, e);
-        //}
 
         private void UpdateGrid()
         {
