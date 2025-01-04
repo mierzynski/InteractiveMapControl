@@ -17,8 +17,9 @@ namespace InteractiveMapControl.cControl.Models
         public string Category { get; set; }        
         public string Group { get; set; }
         public Control UIElement { get; set; }
-        public int ZIndex { get; set; }             
-        public Point OriginalLocation { get; set; }         
+        public int ZIndex { get; set; }
+        public double LocationX { get; set; }
+        public double LocationY { get; set; }
         public Size OriginalSize { get; set; }
         public Color DefaultBackColor { get; set; }
     }

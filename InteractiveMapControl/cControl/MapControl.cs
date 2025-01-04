@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Reflection;
 using System.Windows.Forms;
 using InteractiveMapControl.cControl.Models;
 using System.Linq;
+//using System.Reflection.Emit;
 
 /*
 2. Możliwość grupowania obiektów
@@ -48,7 +48,7 @@ namespace InteractiveMapControl.cControl
 
 
 
-            AddObject("Hala", 500, 200, 25, 10, true, 0);
+            AddObject("Hala", 80, 80, 1, 1, true, 0);
             //AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
             //AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
         }
@@ -127,22 +127,28 @@ namespace InteractiveMapControl.cControl
         private void UpdateObjectSizes()
         {
             int differenceGridSpacing = 0;
+            float scaleFactor = gridSpacing / 20.0f;
+
             if (gridSpacing != previousGridSpacing)
             {
                 differenceGridSpacing = gridSpacing - previousGridSpacing;
                 previousGridSpacing = gridSpacing;
                 foreach (var boardObject in boardObjects)
                 {
-                    int newWidth = (int)(boardObject.OriginalSize.Width + differenceGridSpacing);
-                    int newHeight = (int)(boardObject.OriginalSize.Height + differenceGridSpacing);
+                    //int newWidth = (int)(boardObject.OriginalSize.Width + differenceGridSpacing);
+                    //int newHeight = (int)(boardObject.OriginalSize.Height + differenceGridSpacing);
+                    int newWidth = (int)(boardObject.OriginalSize.Width * scaleFactor);
+                    int newHeight = (int)(boardObject.OriginalSize.Height * scaleFactor);
 
-                    int newX = (int)(boardObject.OriginalLocation.X + differenceGridSpacing);
-                    int newY = (int)(boardObject.OriginalLocation.Y + differenceGridSpacing);
+                    //int newX = (int)(boardObject.OriginalLocation.X + differenceGridSpacing);
+                    //int newY = (int)(boardObject.OriginalLocation.Y + differenceGridSpacing);
 
-                    newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
-                    newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
+                    //newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
+                    //newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
 
-                    boardObject.UIElement.Location = new Point(newX, newY);
+                    Point labelPositionInPixels = ConvertLabelPositionToPixels(boardObject.LocationX, boardObject.LocationY, gridSpacing);
+
+                    boardObject.UIElement.Location = new Point(labelPositionInPixels.X, labelPositionInPixels.Y);
                     boardObject.UIElement.Size = new Size(newWidth, newHeight);
                 }
             }
@@ -324,6 +330,24 @@ namespace InteractiveMapControl.cControl
                 }
             }
         }
+        public Point ConvertLabelPositionToPixels(double labelX, double labelY, int gridSpacing)
+        {
+            int pixelX = 25 + (int)((labelX * 2) * gridSpacing);
+            int pixelY = 10 + (int)((labelY * 2) * gridSpacing);
+            // Zmiana obliczeń o 2 * gridSpacing, aby etykiety były w odpowiedniej odległości
+            //int pixelX = 25 + (int)((labelX * 2) * gridSpacing) - scrollOffsetX; // 25 to offset początkowy osi X
+            //int pixelY = 10 + (int)((labelY * 2) * gridSpacing) - scrollOffsetY; // 10 to offset początkowy osi Y
+            return new Point(pixelX, pixelY);
+        }
+
+        public PointF ConvertPixelsToLabelPosition(int pixelX, int pixelY, int gridSpacing)
+        {
+            // Przeliczenie z powrotem z pikseli na pozycje etykiety z uwzględnieniem 2 * gridSpacing
+            double labelX = (pixelX + scrollOffsetX - 25) / (double)(2 * gridSpacing); // Przekształcenie X
+            double labelY = (pixelY + scrollOffsetY - 10) / (double)(2 * gridSpacing); // Przekształcenie Y
+            return new PointF((float)labelX, (float)labelY);
+        }
+
 
 
         private Bitmap GenerateGridBitmap(int width, int height, int spacing)
@@ -358,8 +382,13 @@ namespace InteractiveMapControl.cControl
             return bitmap;
         }
 
-        public void AddObject(string label, int width, int height, int x, int y, bool positionBottom, int id, int? parentId = null)
+        public void AddObject(string label, int width, int height, double labelX, double labelY, bool positionBottom, int id, int? parentId = null)
         {
+            Point pixelPosition = ConvertLabelPositionToPixels(labelX, labelY, gridSpacing);
+
+            int x = pixelPosition.X;
+            int y = pixelPosition.Y;
+
             if (x < 25) x = 25;
             if (y < 10) y = 10;
 
@@ -408,7 +437,8 @@ namespace InteractiveMapControl.cControl
                 Group = "Default",
                 UIElement = uiPanel,
                 ZIndex = currentZIndex,
-                OriginalLocation = new Point(x, y),
+                LocationX = labelX,
+                LocationY = labelY,
                 OriginalSize = new Size(width, height),
                 DefaultBackColor = uiPanel.BackColor
             };
@@ -451,19 +481,14 @@ namespace InteractiveMapControl.cControl
                 string parentInfo = obj.Parent != null ? obj.Parent.ID.ToString() : "Brak rodzica";
                 string childrenInfo = obj.Children.Any() ? string.Join(", ", obj.Children.Select(c => c.ID)) : "Brak dzieci";
 
-                listBox.Items.Add($"UIElement.Location: {obj.UIElement.Location}");
-                listBox.Items.Add($"OriginalLocation: {obj.OriginalLocation}");
-            }
-            //listBox.Items.Add($"PictureBox size: {backgroundPictureBox.Size}");
-            //listBox.Items.Add($"Bitmap size: {gridBitmap.Size}");
-            listBox.Items.Add($"gridSpacing: {gridSpacing}");
-            //if (yAxisPanel != null)
-            //{
-            //    listBox.Items.Add($"yAxisPanel: {yAxisPanel.Location}");
-            //    listBox.Items.Add($"xAxisPanel: {xAxisPanel.Location}");
-            //    listBox.Items.Add($"scrollOffsetY: {scrollOffsetY}");
-            //}
+                //PointF labelPosition = ConvertPixelsToLabelPosition(obj.OriginalLocation.X, obj.OriginalLocation.Y, gridSpacing);
+                //Point labelPositionInPixels = ConvertLabelPositionToPixels(labelPosition.X, labelPosition.Y, gridSpacing);
 
+                listBox.Items.Add($"UIElement.Location: {obj.UIElement.Location}");
+                listBox.Items.Add($"OriginalLocation (X, Y): ({obj.LocationX}, {obj.LocationY})");
+                listBox.Items.Add("-----------------------------");
+            }
+            listBox.Items.Add($"gridSpacing: {gridSpacing}");
         }
         private void Rectangle_MouseDown(object sender, MouseEventArgs e)
         {
@@ -530,11 +555,13 @@ namespace InteractiveMapControl.cControl
 
                 _draggedControl.Left = newX;
                 _draggedControl.Top = newY;
-
+                PointF labelPosition = ConvertPixelsToLabelPosition(newX, newY, gridSpacing);
                 var draggedObject = _draggedControl.Tag as BoardObject;
                 if (draggedObject != null)
                 {
-                    draggedObject.OriginalLocation = new Point(newX, newY);
+                    draggedObject.LocationX = labelPosition.X;
+                    draggedObject.LocationY = labelPosition.Y;
+                    draggedObject.UIElement.Location = new Point(newX, newY);
                 }
             }
         }
