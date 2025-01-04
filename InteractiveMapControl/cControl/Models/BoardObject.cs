@@ -20,7 +20,8 @@ namespace InteractiveMapControl.cControl.Models
         public int ZIndex { get; set; }
         public double LocationX { get; set; }
         public double LocationY { get; set; }
-        public Size OriginalSize { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
         public Color DefaultBackColor { get; set; }
     }
 }

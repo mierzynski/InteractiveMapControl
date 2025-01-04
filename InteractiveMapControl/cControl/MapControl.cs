@@ -48,7 +48,7 @@ namespace InteractiveMapControl.cControl
 
 
 
-            AddObject("Hala", 80, 80, 1, 1, true, 0);
+            AddObject("Hala", 2, 2, 1, 1, true, 0);
             //AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
             //AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
         }
@@ -104,26 +104,6 @@ namespace InteractiveMapControl.cControl
         }
 
 
-        //private void UpdateObjectSizes()
-        //{
-        //    float scaleFactor = gridSpacing / 20.0f;
-
-        //    foreach (var boardObject in boardObjects)
-        //    {
-        //        int newWidth = (int)(boardObject.OriginalSize.Width * scaleFactor);
-        //        int newHeight = (int)(boardObject.OriginalSize.Height * scaleFactor);
-
-        //        int newX = (int)(boardObject.OriginalLocation.X * scaleFactor);
-        //        int newY = (int)(boardObject.OriginalLocation.Y * scaleFactor);
-
-        //        newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
-        //        newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
-
-        //        boardObject.UIElement.Location = new Point(newX, newY);
-        //        boardObject.UIElement.Size = new Size(newWidth, newHeight);
-        //    }
-        //}
-
         private void UpdateObjectSizes()
         {
             int differenceGridSpacing = 0;
@@ -137,8 +117,10 @@ namespace InteractiveMapControl.cControl
                 {
                     //int newWidth = (int)(boardObject.OriginalSize.Width + differenceGridSpacing);
                     //int newHeight = (int)(boardObject.OriginalSize.Height + differenceGridSpacing);
-                    int newWidth = (int)(boardObject.OriginalSize.Width * scaleFactor);
-                    int newHeight = (int)(boardObject.OriginalSize.Height * scaleFactor);
+                    //int newWidth = (int)(boardObject.OriginalSize.Width * scaleFactor);
+                    //int newHeight = (int)(boardObject.OriginalSize.Height * scaleFactor);
+                    int newWidth = ConvertSizeToPixels(boardObject.Width, boardObject.Height, gridSpacing).X;
+                    int newHeight = ConvertSizeToPixels(boardObject.Width, boardObject.Height, gridSpacing).Y;
 
                     //int newX = (int)(boardObject.OriginalLocation.X + differenceGridSpacing);
                     //int newY = (int)(boardObject.OriginalLocation.Y + differenceGridSpacing);
@@ -348,6 +330,26 @@ namespace InteractiveMapControl.cControl
             return new PointF((float)labelX, (float)labelY);
         }
 
+        public Point ConvertSizeToPixels(double width, double height, int gridSpacing)
+        {
+            // Przemnażamy szerokość i wysokość przez 2 * gridSpacing i zaokrąglamy do najbliższego całkowitego
+            int pixelWidth = (int)(width * 2 * gridSpacing);
+            int pixelHeight = (int)(height * 2 * gridSpacing);
+
+            // Zwracamy szerokość i wysokość w pikselach jako int
+            return new Point(pixelWidth, pixelHeight);
+        }
+
+        public (double width, double height) ConvertSizeFromPixels(int pixelWidth, int pixelHeight, int gridSpacing)
+        {
+            // Przemnażamy szerokość i wysokość w pikselach przez odwrotność 2 * gridSpacing
+            double width = pixelWidth / (2.0 * gridSpacing);
+            double height = pixelHeight / (2.0 * gridSpacing);
+
+            // Zwracamy szerokość i wysokość jako double
+            return (width, height);
+        }
+
 
 
         private Bitmap GenerateGridBitmap(int width, int height, int spacing)
@@ -382,12 +384,14 @@ namespace InteractiveMapControl.cControl
             return bitmap;
         }
 
-        public void AddObject(string label, int width, int height, double labelX, double labelY, bool positionBottom, int id, int? parentId = null)
+        public void AddObject(string label, double width, double height, double labelX, double labelY, bool positionBottom, int id, int? parentId = null)
         {
             Point pixelPosition = ConvertLabelPositionToPixels(labelX, labelY, gridSpacing);
 
             int x = pixelPosition.X;
             int y = pixelPosition.Y;
+            int widthPX = ConvertSizeToPixels(width, height, gridSpacing).X;
+            int heightPX = ConvertSizeToPixels(width, height, gridSpacing).Y;
 
             if (x < 25) x = 25;
             if (y < 10) y = 10;
@@ -396,8 +400,8 @@ namespace InteractiveMapControl.cControl
 
             var uiPanel = new Panel
             {
-                Width = width,
-                Height = height,
+                Width = widthPX,
+                Height = heightPX,
                 BackColor = label.Equals("hala", StringComparison.OrdinalIgnoreCase) ? Color.Transparent : Color.LightBlue,
                 BorderStyle = BorderStyle.FixedSingle,
                 Location = new Point(x, y)
@@ -439,7 +443,8 @@ namespace InteractiveMapControl.cControl
                 ZIndex = currentZIndex,
                 LocationX = labelX,
                 LocationY = labelY,
-                OriginalSize = new Size(width, height),
+                Width = width,
+                Height = height,
                 DefaultBackColor = uiPanel.BackColor
             };
 
@@ -535,7 +540,8 @@ namespace InteractiveMapControl.cControl
                     var boardObject = panel.Tag as BoardObject;
                     if (boardObject != null)
                     {
-                        boardObject.OriginalSize = new Size(newWidth, newHeight);
+                        boardObject.Width = ConvertSizeFromPixels(newWidth, newHeight, gridSpacing).width;
+                        boardObject.Height = ConvertSizeFromPixels(newWidth, newHeight, gridSpacing).height;
                     }
                 }
             }
