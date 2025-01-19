@@ -43,8 +43,8 @@
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
-            this.toolStrip1.Size = new System.Drawing.Size(647, 25);
+            this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 3, 0);
+            this.toolStrip1.Size = new System.Drawing.Size(863, 25);
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -52,9 +52,10 @@
             // 
             this.infoPanel.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.infoPanel.Controls.Add(this.listBox);
-            this.infoPanel.Location = new System.Drawing.Point(3, 331);
+            this.infoPanel.Location = new System.Drawing.Point(4, 407);
+            this.infoPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.infoPanel.Name = "infoPanel";
-            this.infoPanel.Size = new System.Drawing.Size(577, 134);
+            this.infoPanel.Size = new System.Drawing.Size(769, 165);
             this.infoPanel.TabIndex = 6;
             // 
             // listBox
@@ -62,17 +63,20 @@
             this.listBox.BackColor = System.Drawing.SystemColors.InactiveCaption;
             this.listBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listBox.FormattingEnabled = true;
+            this.listBox.ItemHeight = 16;
             this.listBox.Location = new System.Drawing.Point(0, 0);
+            this.listBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.listBox.Name = "listBox";
-            this.listBox.Size = new System.Drawing.Size(577, 134);
+            this.listBox.Size = new System.Drawing.Size(769, 165);
             this.listBox.TabIndex = 0;
             // 
             // backgroundPictureBox
             // 
             this.backgroundPictureBox.BackColor = System.Drawing.SystemColors.AppWorkspace;
             this.backgroundPictureBox.Location = new System.Drawing.Point(0, 0);
+            this.backgroundPictureBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.backgroundPictureBox.Name = "backgroundPictureBox";
-            this.backgroundPictureBox.Size = new System.Drawing.Size(640, 403);
+            this.backgroundPictureBox.Size = new System.Drawing.Size(853, 496);
             this.backgroundPictureBox.TabIndex = 7;
             this.backgroundPictureBox.TabStop = false;
             // 
@@ -83,20 +87,22 @@
             this.panelScroll.Controls.Add(this.backgroundPictureBox);
             this.panelScroll.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelScroll.Location = new System.Drawing.Point(0, 25);
-            this.panelScroll.MaximumSize = new System.Drawing.Size(600, 300);
+            this.panelScroll.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.panelScroll.MaximumSize = new System.Drawing.Size(800, 369);
             this.panelScroll.Name = "panelScroll";
-            this.panelScroll.Size = new System.Drawing.Size(600, 300);
+            this.panelScroll.Size = new System.Drawing.Size(800, 369);
             this.panelScroll.TabIndex = 8;
             // 
             // MapControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.panelScroll);
             this.Controls.Add(this.infoPanel);
             this.Controls.Add(this.toolStrip1);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "MapControl";
-            this.Size = new System.Drawing.Size(647, 505);
+            this.Size = new System.Drawing.Size(863, 622);
             this.infoPanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.backgroundPictureBox)).EndInit();
             this.panelScroll.ResumeLayout(false);

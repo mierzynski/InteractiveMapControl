@@ -1,10 +1,15 @@
 # Ignorowanie folderu Visual Studio
 .vs/
 
-# Ignorowanie plikÃ³w bin i obj
+# Ignorowanie plików bin i obj
 bin/
 obj/
 
-# Ignorowanie plikÃ³w tymczasowych systemu Windows
+# Ignorowanie plików tymczasowych systemu Windows
 *.log
 *.tmp
+
+# Ignorowanie arkuszy kalkulacyjnych
+*.xls
+*.xlsx
+*.ods

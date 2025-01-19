@@ -4,11 +4,14 @@ using System.Drawing;
 using System.Windows.Forms;
 using InteractiveMapControl.cControl.Models;
 using System.Linq;
+using InteractiveMapControl.ObjectData;
+using System.IO;
 //using System.Reflection.Emit;
 
 /*
 2. Możliwość grupowania obiektów
 4. Możliwość kliknięcia na obiekt regał w celu otworzenia okna gdzie będzie wizualizacja regału od przodu
+5. Wyświetlenie szczegółowych informacji na temat wybranego obiektu
  */
 
 namespace InteractiveMapControl.cControl
@@ -47,10 +50,12 @@ namespace InteractiveMapControl.cControl
             DisplayObjectInfo();
 
 
+            // Ścieżka do pliku CSV
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ObjectData", "Obiekty.xlsx");
+            var csvLoader = new XlsObjectLoader();
+            csvLoader.CreateObjectsFromXlsxData(filePath, AddObject);
 
-            AddObject("Hala", 2, 2, 1, 1, true, 0);
-            //AddObject("Obiekt", 140, 60, 40, 40, false, 1, 0);
-            //AddObject("Obiekt", 140, 60, 160, 80, false, 2, 0);
+            //AddObject("Hala", 2, 2, 1, 1, true, 0);
         }
 
         public static int Clamp(int value, int min, int max)
@@ -303,10 +308,10 @@ namespace InteractiveMapControl.cControl
                             horizontalLineY + verticalLineHeight + 2);
                     }
 
-                    if(labelCounter == 100)
-                    {
-                        //MessageBox.Show(x.ToString());
-                    }
+                    //if(labelCounter == 100)
+                    //{
+                    //    //MessageBox.Show(x.ToString());
+                    //}
 
                     labelCounter++;
                 }
@@ -316,37 +321,29 @@ namespace InteractiveMapControl.cControl
         {
             int pixelX = 25 + (int)((labelX * 2) * gridSpacing);
             int pixelY = 10 + (int)((labelY * 2) * gridSpacing);
-            // Zmiana obliczeń o 2 * gridSpacing, aby etykiety były w odpowiedniej odległości
-            //int pixelX = 25 + (int)((labelX * 2) * gridSpacing) - scrollOffsetX; // 25 to offset początkowy osi X
-            //int pixelY = 10 + (int)((labelY * 2) * gridSpacing) - scrollOffsetY; // 10 to offset początkowy osi Y
             return new Point(pixelX, pixelY);
         }
 
         public PointF ConvertPixelsToLabelPosition(int pixelX, int pixelY, int gridSpacing)
         {
-            // Przeliczenie z powrotem z pikseli na pozycje etykiety z uwzględnieniem 2 * gridSpacing
-            double labelX = (pixelX + scrollOffsetX - 25) / (double)(2 * gridSpacing); // Przekształcenie X
-            double labelY = (pixelY + scrollOffsetY - 10) / (double)(2 * gridSpacing); // Przekształcenie Y
+            double labelX = (pixelX + scrollOffsetX - 25) / (double)(2 * gridSpacing);
+            double labelY = (pixelY + scrollOffsetY - 10) / (double)(2 * gridSpacing);
             return new PointF((float)labelX, (float)labelY);
         }
 
         public Point ConvertSizeToPixels(double width, double height, int gridSpacing)
         {
-            // Przemnażamy szerokość i wysokość przez 2 * gridSpacing i zaokrąglamy do najbliższego całkowitego
             int pixelWidth = (int)(width * 2 * gridSpacing);
             int pixelHeight = (int)(height * 2 * gridSpacing);
 
-            // Zwracamy szerokość i wysokość w pikselach jako int
             return new Point(pixelWidth, pixelHeight);
         }
 
         public (double width, double height) ConvertSizeFromPixels(int pixelWidth, int pixelHeight, int gridSpacing)
         {
-            // Przemnażamy szerokość i wysokość w pikselach przez odwrotność 2 * gridSpacing
             double width = pixelWidth / (2.0 * gridSpacing);
             double height = pixelHeight / (2.0 * gridSpacing);
 
-            // Zwracamy szerokość i wysokość jako double
             return (width, height);
         }
 
@@ -429,12 +426,12 @@ namespace InteractiveMapControl.cControl
             BoardObject parentObject = null;
             if (parentId.HasValue)
             {
-                parentObject = boardObjects.FirstOrDefault(obj => obj.ID == parentId.Value);
+                parentObject = boardObjects.FirstOrDefault(obj => obj.ObjectID == parentId.Value);
             }
 
             var boardObject = new BoardObject
             {
-                ID = id,
+                ObjectID = id,
                 Name = label,
                 Parent = parentObject,
                 Category = label,
@@ -483,8 +480,8 @@ namespace InteractiveMapControl.cControl
 
             foreach (var obj in boardObjects)
             {
-                string parentInfo = obj.Parent != null ? obj.Parent.ID.ToString() : "Brak rodzica";
-                string childrenInfo = obj.Children.Any() ? string.Join(", ", obj.Children.Select(c => c.ID)) : "Brak dzieci";
+                string parentInfo = obj.Parent != null ? obj.Parent.ObjectID.ToString() : "Brak rodzica";
+                string childrenInfo = obj.Children.Any() ? string.Join(", ", obj.Children.Select(c => c.ObjectID)) : "Brak dzieci";
 
                 //PointF labelPosition = ConvertPixelsToLabelPosition(obj.OriginalLocation.X, obj.OriginalLocation.Y, gridSpacing);
                 //Point labelPositionInPixels = ConvertLabelPositionToPixels(labelPosition.X, labelPosition.Y, gridSpacing);
