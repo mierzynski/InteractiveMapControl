@@ -11,7 +11,7 @@ namespace InteractiveMapControl.ObjectData
     internal class XlsObjectLoader
     {
         // Klasa reprezentująca dane z pliku XLSX
-        public class CsvObject
+        public class XlsObject
         {
             public int ObjectID { get; set; }
             public int? ParentID { get; set; }
@@ -20,11 +20,11 @@ namespace InteractiveMapControl.ObjectData
         }
 
         // Metoda do wczytywania danych z pliku XLSX
-        public List<CsvObject> LoadObjectsFromXlsx(string filePath)
+        public List<XlsObject> LoadObjectsFromXlsx(string filePath)
         {
             try
             {
-                var objects = new List<CsvObject>();
+                var objects = new List<XlsObject>();
 
                 // Otwórz plik XLSX
                 using (var workbook = new XLWorkbook(filePath))
@@ -50,7 +50,7 @@ namespace InteractiveMapControl.ObjectData
                         var level = row.Cell(4).GetValue<int>();
 
                         // Dodanie obiektu do listy
-                        objects.Add(new CsvObject
+                        objects.Add(new XlsObject
                         {
                             ObjectID = objectId,
                             ParentID = parentId,
@@ -65,36 +65,103 @@ namespace InteractiveMapControl.ObjectData
             catch (Exception ex)
             {
                 MessageBox.Show($"Błąd podczas wczytywania pliku XLSX: {ex.Message}", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return new List<CsvObject>();
+                return new List<XlsObject>();
             }
         }
 
-        // Metoda do tworzenia obiektów na podstawie wczytanych danych
-        public void CreateObjectsFromXlsxData(
-            string filePath,
-            Action<string, double, double, double, double, bool, int, int?> addObjectCallback)
-        {
-            var csvObjects = LoadObjectsFromXlsx(filePath);
+        //    public void CreateObjectsFromXlsxData(
+        //string filePath,
+        //Action<string, double, double, double, double, int, int?> addObjectCallback)
+        //    {
+        //        var xlsObjects = LoadObjectsFromXlsx(filePath);
 
-            foreach (var csvObj in csvObjects)
+        //        foreach (var xlsObj in xlsObjects)
+        //        {
+        //            // Ustalanie rozmiaru na podstawie Level
+        //            double size;
+        //            switch (xlsObj.Level)
+        //            {
+        //                case 1:
+        //                    size = 20;
+        //                    break;
+        //                case 2:
+        //                    size = 15;
+        //                    break;
+        //                case 3:
+        //                    size = 10;
+        //                    break;
+        //                default:
+        //                    size = 5; // Domyślny rozmiar dla poziomów powyżej 3
+        //                    break;
+        //            }
+
+        //            double width = size;
+        //            double height = size;
+
+        //            double labelX = 1;
+        //            double labelY = 1;
+
+        //            addObjectCallback(
+        //                xlsObj.Name,
+        //                width,
+        //                height,
+        //                labelX,
+        //                labelY,
+        //                xlsObj.ObjectID,
+        //                xlsObj.ParentID
+        //            );
+        //        }
+        //    }
+
+        public void CreateObjectsFromXlsxData(
+    string filePath,
+    Action<string, double, double, double, double, int, int?, int> addObjectCallback)
+        {
+            var xlsObjects = LoadObjectsFromXlsx(filePath);
+
+            foreach (var xlsObj in xlsObjects)
             {
-                double width = 3;
-                double height = 3;
+                // Ustalanie rozmiaru na podstawie Level
+                double size;
+                switch (xlsObj.Level)
+                {
+                    case 1:
+                        size = 20;
+                        break;
+                    case 2:
+                        size = 15;
+                        break;
+                    case 3:
+                        size = 10;
+                        break;
+                    default:
+                        size = 5; // Domyślny rozmiar dla poziomów powyżej 3
+                        break;
+                }
+
+                double width = size;
+                double height = size;
+
                 double labelX = 1;
                 double labelY = 1;
-                bool positionBottom = csvObj.Level > 1;
+
+                int Level = xlsObj.Level;
 
                 addObjectCallback(
-                    csvObj.Name,
+                    xlsObj.Name,
                     width,
                     height,
                     labelX,
                     labelY,
-                    positionBottom,
-                    csvObj.ObjectID,
-                    csvObj.ParentID
+                    xlsObj.ObjectID,
+                    xlsObj.ParentID,
+                    Level
                 );
             }
         }
+
+
+
+
     }
 }

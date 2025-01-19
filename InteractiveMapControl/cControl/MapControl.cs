@@ -381,7 +381,100 @@ namespace InteractiveMapControl.cControl
             return bitmap;
         }
 
-        public void AddObject(string label, double width, double height, double labelX, double labelY, bool positionBottom, int id, int? parentId = null)
+        //    public void AddObject(
+        //string label,
+        //double width,
+        //double height,
+        //double labelX,
+        //double labelY,
+        //int id,
+        //int? parentId = null)
+        //    {
+        //        Point pixelPosition = ConvertLabelPositionToPixels(labelX, labelY, gridSpacing);
+
+        //        int x = pixelPosition.X;
+        //        int y = pixelPosition.Y;
+        //        int widthPX = ConvertSizeToPixels(width, height, gridSpacing).X;
+        //        int heightPX = ConvertSizeToPixels(width, height, gridSpacing).Y;
+
+        //        if (x < 25) x = 25;
+        //        if (y < 10) y = 10;
+
+        //        int currentZIndex = backgroundPictureBox.Controls.Count;
+
+        //        var uiPanel = new Panel
+        //        {
+        //            Width = widthPX,
+        //            Height = heightPX,
+        //            BackColor = label.Equals("hala", StringComparison.OrdinalIgnoreCase) ? Color.Transparent : Color.LightBlue,
+        //            BorderStyle = BorderStyle.FixedSingle,
+        //            Location = new Point(x, y)
+        //        };
+
+        //        var labelControl = new Label
+        //        {
+        //            Text = $"{label}, ID: {id}",
+        //            AutoSize = true,
+        //            Location = new Point(5, 5)
+        //        };
+
+        //        uiPanel.Controls.Add(labelControl);
+
+        //        uiPanel.MouseDown += Rectangle_MouseDown;
+        //        uiPanel.MouseMove += Rectangle_MouseMove;
+        //        uiPanel.MouseUp += Rectangle_MouseUp;
+        //        uiPanel.DoubleClick += Rectangle_DoubleClick;
+        //        uiPanel.MouseEnter += Rectangle_MouseEnter;
+        //        uiPanel.MouseLeave += Rectangle_MouseLeave;
+
+        //        backgroundPictureBox.Controls.Add(uiPanel);
+
+        //        BoardObject parentObject = null;
+        //        if (parentId.HasValue)
+        //        {
+        //            parentObject = boardObjects.FirstOrDefault(obj => obj.ObjectID == parentId.Value);
+        //        }
+
+        //        var boardObject = new BoardObject
+        //        {
+        //            ObjectID = id,
+        //            Name = label,
+        //            Parent = parentObject,
+        //            Category = label,
+        //            Group = "Default",
+        //            UIElement = uiPanel,
+        //            ZIndex = currentZIndex,
+        //            LocationX = labelX,
+        //            LocationY = labelY,
+        //            Width = width,
+        //            Height = height,
+        //            DefaultBackColor = uiPanel.BackColor
+        //        };
+
+        //        if (parentObject != null)
+        //        {
+        //            parentObject.Children.Add(boardObject);
+        //        }
+
+        //        uiPanel.Tag = boardObject;
+
+        //        boardObjects.Add(boardObject);
+
+        //        UpdateZIndices();
+
+        //        // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
+        //        DisplayObjectInfo();
+        //    }
+
+        public void AddObject(
+    string label,
+    double width,
+    double height,
+    double labelX,
+    double labelY,
+    int id,
+    int? parentId = null,
+    int zIndex = 0)
         {
             Point pixelPosition = ConvertLabelPositionToPixels(labelX, labelY, gridSpacing);
 
@@ -392,8 +485,6 @@ namespace InteractiveMapControl.cControl
 
             if (x < 25) x = 25;
             if (y < 10) y = 10;
-
-            int currentZIndex = backgroundPictureBox.Controls.Count;
 
             var uiPanel = new Panel
             {
@@ -422,7 +513,6 @@ namespace InteractiveMapControl.cControl
 
             backgroundPictureBox.Controls.Add(uiPanel);
 
-
             BoardObject parentObject = null;
             if (parentId.HasValue)
             {
@@ -437,14 +527,13 @@ namespace InteractiveMapControl.cControl
                 Category = label,
                 Group = "Default",
                 UIElement = uiPanel,
-                ZIndex = currentZIndex,
+                ZIndex = zIndex, // Ustawienie ZIndex
                 LocationX = labelX,
                 LocationY = labelY,
                 Width = width,
                 Height = height,
                 DefaultBackColor = uiPanel.BackColor
             };
-
 
             if (parentObject != null)
             {
@@ -455,20 +544,25 @@ namespace InteractiveMapControl.cControl
 
             boardObjects.Add(boardObject);
 
-            if (positionBottom)
-            {
-                uiPanel.SendToBack();
-            }
-            else
-            {
-                uiPanel.BringToFront();
-            }
-
             UpdateZIndices();
 
             // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
             DisplayObjectInfo();
         }
+
+        private void UpdateZIndices()
+        {
+            var sortedObjects = boardObjects.OrderBy(obj => obj.ZIndex).ToList();
+
+            foreach (var obj in sortedObjects)
+            {
+                if (obj.UIElement is Control control)
+                {
+                    control.BringToFront();
+                }
+            }
+        }
+
 
 
         // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
@@ -595,22 +689,6 @@ namespace InteractiveMapControl.cControl
         private void Rectangle_MouseLeave(object sender, EventArgs e)
         {
             Cursor = Cursors.Default;
-        }
-
-
-
-        private void UpdateZIndices()
-        {
-            for (int i = 0; i < backgroundPictureBox.Controls.Count; i++)
-            {
-                var control = backgroundPictureBox.Controls[i];
-                var boardObject = boardObjects.FirstOrDefault(obj => obj.UIElement == control);
-
-                if (boardObject != null)
-                {
-                    boardObject.ZIndex = i;
-                }
-            }
         }
 
         private void Rectangle_DoubleClick(object sender, EventArgs e)
