@@ -66,7 +66,8 @@ namespace InteractiveMapControl.cControl
             int scrollOffsetYMin = 0;
             int scrollOffsetYMax = 0;
 
-            scrollOffsetYMax = (gridSpacing - 15) / 5 * 1000 + 2752;
+            //Zauważyłem zależność pomiędzy zmianą scrollOffsetYMax - zawsze jest mniejszy o 483 niezależnie od wartości gridSpacing
+            scrollOffsetYMax = backgroundPictureBox.Height - 483;
             scrollStep = Math.Abs(e.Delta);
             int scrollChange = e.Delta > 0 ? -scrollStep : scrollStep;
             int newScrollOffsetY = scrollOffsetY + scrollChange;
@@ -489,13 +490,21 @@ namespace InteractiveMapControl.cControl
                 //PointF labelPosition = ConvertPixelsToLabelPosition(obj.OriginalLocation.X, obj.OriginalLocation.Y, gridSpacing);
                 //Point labelPositionInPixels = ConvertLabelPositionToPixels(labelPosition.X, labelPosition.Y, gridSpacing);
 
-                listBox.Items.Add($"UIElement.Location: {obj.UIElement.Location}");
-                listBox.Items.Add($"OriginalLocation (X, Y): ({obj.LocationX}, {obj.LocationY})");
-                listBox.Items.Add($"Level: {obj.ZIndex}");
-                listBox.Items.Add($"ParentID: {parentID}");
-                listBox.Items.Add($"ParentName: {parentName}");
-                listBox.Items.Add("-----------------------------");
+                //listBox.Items.Add($"UIElement.Location: {obj.UIElement.Location}");
+                //listBox.Items.Add($"OriginalLocation (X, Y): ({obj.LocationX}, {obj.LocationY})");
+                //listBox.Items.Add($"Level: {obj.ZIndex}");
+                //listBox.Items.Add($"ParentID: {parentID}");
+                //listBox.Items.Add($"ParentName: {parentName}");
+                //listBox.Items.Add("-----------------------------");
+
             }
+            if (xAxisPanel != null)
+            {
+                listBox.Items.Add($"xAxisPanel: {xAxisPanel.Location}");
+                listBox.Items.Add($"scrollOffsetY: {scrollOffsetY}");
+            }
+            
+            listBox.Items.Add($"board Size: {backgroundPictureBox.Size}");
             listBox.Items.Add($"gridSpacing: {gridSpacing}");
         }
         private void Rectangle_MouseDown(object sender, MouseEventArgs e)
