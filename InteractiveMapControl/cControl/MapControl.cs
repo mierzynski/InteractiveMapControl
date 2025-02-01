@@ -8,11 +8,6 @@ using InteractiveMapControl.ObjectData;
 using System.IO;
 //using System.Reflection.Emit;
 
-/*
-2. Możliwość grupowania obiektów
-4. Możliwość kliknięcia na obiekt regał w celu otworzenia okna gdzie będzie wizualizacja regału od przodu
-5. Wyświetlenie szczegółowych informacji na temat wybranego obiektu
- */
 
 namespace InteractiveMapControl.cControl
 {
@@ -381,91 +376,6 @@ namespace InteractiveMapControl.cControl
             return bitmap;
         }
 
-        //    public void AddObject(
-        //string label,
-        //double width,
-        //double height,
-        //double labelX,
-        //double labelY,
-        //int id,
-        //int? parentId = null)
-        //    {
-        //        Point pixelPosition = ConvertLabelPositionToPixels(labelX, labelY, gridSpacing);
-
-        //        int x = pixelPosition.X;
-        //        int y = pixelPosition.Y;
-        //        int widthPX = ConvertSizeToPixels(width, height, gridSpacing).X;
-        //        int heightPX = ConvertSizeToPixels(width, height, gridSpacing).Y;
-
-        //        if (x < 25) x = 25;
-        //        if (y < 10) y = 10;
-
-        //        int currentZIndex = backgroundPictureBox.Controls.Count;
-
-        //        var uiPanel = new Panel
-        //        {
-        //            Width = widthPX,
-        //            Height = heightPX,
-        //            BackColor = label.Equals("hala", StringComparison.OrdinalIgnoreCase) ? Color.Transparent : Color.LightBlue,
-        //            BorderStyle = BorderStyle.FixedSingle,
-        //            Location = new Point(x, y)
-        //        };
-
-        //        var labelControl = new Label
-        //        {
-        //            Text = $"{label}, ID: {id}",
-        //            AutoSize = true,
-        //            Location = new Point(5, 5)
-        //        };
-
-        //        uiPanel.Controls.Add(labelControl);
-
-        //        uiPanel.MouseDown += Rectangle_MouseDown;
-        //        uiPanel.MouseMove += Rectangle_MouseMove;
-        //        uiPanel.MouseUp += Rectangle_MouseUp;
-        //        uiPanel.DoubleClick += Rectangle_DoubleClick;
-        //        uiPanel.MouseEnter += Rectangle_MouseEnter;
-        //        uiPanel.MouseLeave += Rectangle_MouseLeave;
-
-        //        backgroundPictureBox.Controls.Add(uiPanel);
-
-        //        BoardObject parentObject = null;
-        //        if (parentId.HasValue)
-        //        {
-        //            parentObject = boardObjects.FirstOrDefault(obj => obj.ObjectID == parentId.Value);
-        //        }
-
-        //        var boardObject = new BoardObject
-        //        {
-        //            ObjectID = id,
-        //            Name = label,
-        //            Parent = parentObject,
-        //            Category = label,
-        //            Group = "Default",
-        //            UIElement = uiPanel,
-        //            ZIndex = currentZIndex,
-        //            LocationX = labelX,
-        //            LocationY = labelY,
-        //            Width = width,
-        //            Height = height,
-        //            DefaultBackColor = uiPanel.BackColor
-        //        };
-
-        //        if (parentObject != null)
-        //        {
-        //            parentObject.Children.Add(boardObject);
-        //        }
-
-        //        uiPanel.Tag = boardObject;
-
-        //        boardObjects.Add(boardObject);
-
-        //        UpdateZIndices();
-
-        //        // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
-        //        DisplayObjectInfo();
-        //    }
-
         public void AddObject(
     string label,
     double width,
@@ -574,14 +484,16 @@ namespace InteractiveMapControl.cControl
 
             foreach (var obj in boardObjects)
             {
-                string parentInfo = obj.Parent != null ? obj.Parent.ObjectID.ToString() : "Brak rodzica";
-                string childrenInfo = obj.Children.Any() ? string.Join(", ", obj.Children.Select(c => c.ObjectID)) : "Brak dzieci";
-
+                string parentID = obj.Parent?.ObjectID.ToString() ?? "Brak";
+                string parentName = obj.Parent?.Name ?? "Brak";
                 //PointF labelPosition = ConvertPixelsToLabelPosition(obj.OriginalLocation.X, obj.OriginalLocation.Y, gridSpacing);
                 //Point labelPositionInPixels = ConvertLabelPositionToPixels(labelPosition.X, labelPosition.Y, gridSpacing);
 
                 listBox.Items.Add($"UIElement.Location: {obj.UIElement.Location}");
                 listBox.Items.Add($"OriginalLocation (X, Y): ({obj.LocationX}, {obj.LocationY})");
+                listBox.Items.Add($"Level: {obj.ZIndex}");
+                listBox.Items.Add($"ParentID: {parentID}");
+                listBox.Items.Add($"ParentName: {parentName}");
                 listBox.Items.Add("-----------------------------");
             }
             listBox.Items.Add($"gridSpacing: {gridSpacing}");
@@ -610,6 +522,58 @@ namespace InteractiveMapControl.cControl
             }
         }
 
+        //private void Rectangle_MouseMove(object sender, MouseEventArgs e)
+        //{
+        //    if (isResizing && _selectedPanel != null)
+        //    {
+        //        var panel = _selectedPanel;
+        //        if (panel != null)
+        //        {
+        //            int newWidth = originalSize.Width + (e.X - resizeStartPoint.X);
+        //            int newHeight = originalSize.Height + (e.Y - resizeStartPoint.Y);
+
+        //            newWidth = Math.Max(gridSpacing, newWidth);
+        //            newHeight = Math.Max(gridSpacing, newHeight);
+
+        //            newWidth = (newWidth / gridSpacing) * gridSpacing;
+        //            newHeight = (newHeight / gridSpacing) * gridSpacing;
+
+        //            panel.Size = new Size(newWidth, newHeight);
+
+        //            var boardObject = panel.Tag as BoardObject;
+        //            if (boardObject != null)
+        //            {
+        //                boardObject.Width = ConvertSizeFromPixels(newWidth, newHeight, gridSpacing).width;
+        //                boardObject.Height = ConvertSizeFromPixels(newWidth, newHeight, gridSpacing).height;
+        //            }
+        //        }
+        //    }
+        //    else if (_draggedControl != null && e.Button == MouseButtons.Left)
+        //    {
+        //        int newX = _draggedControl.Left + e.X - _dragStartPoint.X;
+        //        int newY = _draggedControl.Top + e.Y - _dragStartPoint.Y;
+
+        //        newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
+        //        newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
+
+        //        int maxX = backgroundPictureBox.Width - _draggedControl.Width;
+        //        int maxY = backgroundPictureBox.Height - _draggedControl.Height;
+
+        //        newX = Math.Max(25, Math.Min(newX, maxX));
+        //        newY = Math.Max(10, Math.Min(newY, maxY));
+
+        //        _draggedControl.Left = newX;
+        //        _draggedControl.Top = newY;
+        //        PointF labelPosition = ConvertPixelsToLabelPosition(newX, newY, gridSpacing);
+        //        var draggedObject = _draggedControl.Tag as BoardObject;
+        //        if (draggedObject != null)
+        //        {
+        //            draggedObject.LocationX = labelPosition.X;
+        //            draggedObject.LocationY = labelPosition.Y;
+        //            draggedObject.UIElement.Location = new Point(newX, newY);
+        //        }
+        //    }
+        //}
         private void Rectangle_MouseMove(object sender, MouseEventArgs e)
         {
             if (isResizing && _selectedPanel != null)
@@ -650,8 +614,15 @@ namespace InteractiveMapControl.cControl
                 newX = Math.Max(25, Math.Min(newX, maxX));
                 newY = Math.Max(10, Math.Min(newY, maxY));
 
+                // Oblicz przesunięcie względem poprzedniej pozycji
+                int deltaX = newX - _draggedControl.Left;
+                int deltaY = newY - _draggedControl.Top;
+
+                // Przesuń główny obiekt
                 _draggedControl.Left = newX;
                 _draggedControl.Top = newY;
+
+                // Zaktualizuj pozycję obiektu w modelu danych
                 PointF labelPosition = ConvertPixelsToLabelPosition(newX, newY, gridSpacing);
                 var draggedObject = _draggedControl.Tag as BoardObject;
                 if (draggedObject != null)
@@ -659,6 +630,32 @@ namespace InteractiveMapControl.cControl
                     draggedObject.LocationX = labelPosition.X;
                     draggedObject.LocationY = labelPosition.Y;
                     draggedObject.UIElement.Location = new Point(newX, newY);
+
+                    // Przesuń wszystkie dzieci rekurencyjnie
+                    MoveChildrenRecursively(draggedObject, deltaX, deltaY);
+                }
+            }
+        }
+        private void MoveChildrenRecursively(BoardObject parentObject, int deltaX, int deltaY)
+        {
+            if (parentObject.Children != null && parentObject.Children.Any())
+            {
+                foreach (var child in parentObject.Children)
+                {
+                    if (child.UIElement != null)
+                    {
+                        // Przesuń dziecko o tę samą wartość deltaX i deltaY
+                        child.UIElement.Left += deltaX;
+                        child.UIElement.Top += deltaY;
+
+                        // Zaktualizuj pozycję dziecka w modelu danych
+                        PointF childLabelPosition = ConvertPixelsToLabelPosition(child.UIElement.Left, child.UIElement.Top, gridSpacing);
+                        child.LocationX = childLabelPosition.X;
+                        child.LocationY = childLabelPosition.Y;
+
+                        // Przesuń dzieci tego dziecka (rekurencja)
+                        MoveChildrenRecursively(child, deltaX, deltaY);
+                    }
                 }
             }
         }

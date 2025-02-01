@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using ClosedXML.Excel; // Dodaj referencję do ClosedXML
+using ClosedXML.Excel;
 
 namespace InteractiveMapControl.ObjectData
 {
@@ -69,81 +69,37 @@ namespace InteractiveMapControl.ObjectData
             }
         }
 
-        //    public void CreateObjectsFromXlsxData(
-        //string filePath,
-        //Action<string, double, double, double, double, int, int?> addObjectCallback)
-        //    {
-        //        var xlsObjects = LoadObjectsFromXlsx(filePath);
-
-        //        foreach (var xlsObj in xlsObjects)
-        //        {
-        //            // Ustalanie rozmiaru na podstawie Level
-        //            double size;
-        //            switch (xlsObj.Level)
-        //            {
-        //                case 1:
-        //                    size = 20;
-        //                    break;
-        //                case 2:
-        //                    size = 15;
-        //                    break;
-        //                case 3:
-        //                    size = 10;
-        //                    break;
-        //                default:
-        //                    size = 5; // Domyślny rozmiar dla poziomów powyżej 3
-        //                    break;
-        //            }
-
-        //            double width = size;
-        //            double height = size;
-
-        //            double labelX = 1;
-        //            double labelY = 1;
-
-        //            addObjectCallback(
-        //                xlsObj.Name,
-        //                width,
-        //                height,
-        //                labelX,
-        //                labelY,
-        //                xlsObj.ObjectID,
-        //                xlsObj.ParentID
-        //            );
-        //        }
-        //    }
-
         public void CreateObjectsFromXlsxData(
     string filePath,
     Action<string, double, double, double, double, int, int?, int> addObjectCallback)
         {
             var xlsObjects = LoadObjectsFromXlsx(filePath);
+            double labelX = 0;
+            double labelY = 0;
 
             foreach (var xlsObj in xlsObjects)
             {
-                // Ustalanie rozmiaru na podstawie Level
                 double size;
                 switch (xlsObj.Level)
                 {
                     case 1:
-                        size = 20;
-                        break;
-                    case 2:
-                        size = 15;
-                        break;
-                    case 3:
                         size = 10;
                         break;
+                    case 2:
+                        size = 8;
+                        break;
+                    case 3:
+                        size = 6;
+                        break;
                     default:
-                        size = 5; // Domyślny rozmiar dla poziomów powyżej 3
+                        size = 4; // Domyślny rozmiar dla poziomów powyżej 3
                         break;
                 }
 
                 double width = size;
                 double height = size;
 
-                double labelX = 1;
-                double labelY = 1;
+
 
                 int Level = xlsObj.Level;
 
@@ -157,6 +113,9 @@ namespace InteractiveMapControl.ObjectData
                     xlsObj.ParentID,
                     Level
                 );
+
+                labelX += 0.5;
+                labelY += 0.5;
             }
         }
 
