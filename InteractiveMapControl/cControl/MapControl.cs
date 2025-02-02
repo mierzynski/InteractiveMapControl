@@ -477,35 +477,87 @@ namespace InteractiveMapControl.cControl
 
 
         // TESTOWY PANEL DO ŚLEDZENIE INFORMACJI O OBIEKTACH
+        //private void DisplayObjectInfo()
+        //{
+        //    var horizontalVisible = panelScroll.HorizontalScroll.Visible;
+        //    var verticalVisible = panelScroll.VerticalScroll.Visible;
+        //    listBox.Items.Clear();
+
+        //    foreach (var obj in boardObjects)
+        //    {
+        //        string parentID = obj.Parent?.ObjectID.ToString() ?? "Brak";
+        //        string parentName = obj.Parent?.Name ?? "Brak";
+        //        //PointF labelPosition = ConvertPixelsToLabelPosition(obj.OriginalLocation.X, obj.OriginalLocation.Y, gridSpacing);
+        //        //Point labelPositionInPixels = ConvertLabelPositionToPixels(labelPosition.X, labelPosition.Y, gridSpacing);
+
+        //        //listBox.Items.Add($"UIElement.Location: {obj.UIElement.Location}");
+        //        //listBox.Items.Add($"OriginalLocation (X, Y): ({obj.LocationX}, {obj.LocationY})");
+        //        //listBox.Items.Add($"Level: {obj.ZIndex}");
+        //        //listBox.Items.Add($"ParentID: {parentID}");
+        //        //listBox.Items.Add($"ParentName: {parentName}");
+        //        //listBox.Items.Add("-----------------------------");
+
+        //    }
+        //    if (xAxisPanel != null)
+        //    {
+        //        listBox.Items.Add($"xAxisPanel: {xAxisPanel.Location}");
+        //        listBox.Items.Add($"scrollOffsetY: {scrollOffsetY}");
+        //    }
+
+        //    listBox.Items.Add($"board Size: {backgroundPictureBox.Size}");
+        //    listBox.Items.Add($"gridSpacing: {gridSpacing}");
+        //}
         private void DisplayObjectInfo()
         {
-            var horizontalVisible = panelScroll.HorizontalScroll.Visible;
-            var verticalVisible = panelScroll.VerticalScroll.Visible;
             listBox.Items.Clear();
 
-            foreach (var obj in boardObjects)
+            if (_selectedPanel != null)
             {
-                string parentID = obj.Parent?.ObjectID.ToString() ?? "Brak";
-                string parentName = obj.Parent?.Name ?? "Brak";
-                //PointF labelPosition = ConvertPixelsToLabelPosition(obj.OriginalLocation.X, obj.OriginalLocation.Y, gridSpacing);
-                //Point labelPositionInPixels = ConvertLabelPositionToPixels(labelPosition.X, labelPosition.Y, gridSpacing);
+                var selectedObject = _selectedPanel.Tag as BoardObject;
+                if (selectedObject != null)
+                {
+                    string parentID = selectedObject.Parent?.ObjectID.ToString() ?? "Brak";
+                    string parentName = selectedObject.Parent?.Name ?? "Brak";
 
-                //listBox.Items.Add($"UIElement.Location: {obj.UIElement.Location}");
-                //listBox.Items.Add($"OriginalLocation (X, Y): ({obj.LocationX}, {obj.LocationY})");
-                //listBox.Items.Add($"Level: {obj.ZIndex}");
-                //listBox.Items.Add($"ParentID: {parentID}");
-                //listBox.Items.Add($"ParentName: {parentName}");
-                //listBox.Items.Add("-----------------------------");
-
+                    listBox.Items.Add($"Nazwa obiektu: {selectedObject.Name}");
+                    listBox.Items.Add($"ID obiektu: {selectedObject.ObjectID}");
+                    listBox.Items.Add("-----------------------------");
+                    listBox.Items.Add($"Pozycja (X, Y): ({selectedObject.LocationX}, {selectedObject.LocationY})");
+                    listBox.Items.Add($"Poziom (ZIndex): {selectedObject.ZIndex}");
+                    listBox.Items.Add("-----------------------------");
+                    listBox.Items.Add($"Szerokość: {selectedObject.Width}m");
+                    listBox.Items.Add($"Wysokość: {selectedObject.Height}m");
+                    listBox.Items.Add("-----------------------------");
+                    listBox.Items.Add($"Rodzic: {parentName}");
+                    listBox.Items.Add("-----------------------------");
+                    if (selectedObject.Children != null && selectedObject.Children.Any())
+                    {
+                        listBox.Items.Add("Dzieci obiektu:");
+                        foreach (var child in selectedObject.Children)
+                        {
+                            listBox.Items.Add($"Nazwa: {child.Name}");
+                        }
+                        listBox.Items.Add("-----------------------------");
+                    }
+                    else
+                    {
+                        listBox.Items.Add("Brak dzieci.");
+                        listBox.Items.Add("-----------------------------");
+                    }
+                }
             }
-            if (xAxisPanel != null)
+            else
             {
-                listBox.Items.Add($"xAxisPanel: {xAxisPanel.Location}");
-                listBox.Items.Add($"scrollOffsetY: {scrollOffsetY}");
+                // Wyświetl ogólne informacje, gdy żaden obiekt nie jest wybrany
+                listBox.Items.Add($"Rozmiar planszy: {backgroundPictureBox.Size}");
+                listBox.Items.Add($"Odstęp siatki (gridSpacing): {gridSpacing}");
+
+                if (xAxisPanel != null)
+                {
+                    listBox.Items.Add($"Panel osi X: {xAxisPanel.Location}");
+                    listBox.Items.Add($"Przesunięcie scrolla Y: {scrollOffsetY}");
+                }
             }
-            
-            listBox.Items.Add($"board Size: {backgroundPictureBox.Size}");
-            listBox.Items.Add($"gridSpacing: {gridSpacing}");
         }
         private void Rectangle_MouseDown(object sender, MouseEventArgs e)
         {
@@ -777,6 +829,7 @@ namespace InteractiveMapControl.cControl
                     clickedPanel.BackColor = Color.LightGreen;
                     _selectedPanel = clickedPanel;
                 }
+                DisplayObjectInfo();
             }
         }
 
