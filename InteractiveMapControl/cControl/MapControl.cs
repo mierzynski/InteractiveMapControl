@@ -584,6 +584,9 @@ namespace InteractiveMapControl.cControl
 
                         boardObject.Width = ConvertSizeFromPixels(newWidth, newHeight, gridSpacing).width;
                         boardObject.Height = ConvertSizeFromPixels(newWidth, newHeight, gridSpacing).height;
+
+                        // Odśwież panel, aby trójkąt został narysowany w nowym rozmiarze
+                        panel.Invalidate();
                     }
                 }
             }
@@ -633,6 +636,9 @@ namespace InteractiveMapControl.cControl
                     draggedObject.UIElement.Location = new Point(newX, newY);
 
                     MoveChildrenRecursively(draggedObject, deltaX, deltaY);
+
+                    // Odśwież panel, aby trójkąt został narysowany w nowej pozycji
+                    _draggedControl.Invalidate();
                 }
             }
         }
@@ -685,6 +691,32 @@ namespace InteractiveMapControl.cControl
             Cursor = Cursors.Default;
         }
 
+        private bool showResizeHandle = false;
+        private void InitializePanel(Panel panel)
+        {
+            panel.Paint -= Panel_Paint;
+            panel.Paint += Panel_Paint;
+        }
+
+        private void Panel_Paint(object sender, PaintEventArgs e)
+        {
+            var panel = sender as Panel;
+            if (panel == null || !showResizeHandle) return;
+            using (var brush = new SolidBrush(Color.Red))
+            {
+                int triangleSize = 15;
+                Point[] trianglePoints =
+                {
+            new Point(panel.Width - triangleSize, panel.Height),
+            new Point(panel.Width, panel.Height - triangleSize),
+            new Point(panel.Width, panel.Height)
+        };
+
+                e.Graphics.FillPolygon(brush, trianglePoints);
+            }
+        }
+
+
         private void Rectangle_DoubleClick(object sender, EventArgs e)
         {
             var clickedPanel = sender as Panel;
@@ -700,6 +732,7 @@ namespace InteractiveMapControl.cControl
                         clickedPanel.BackColor = clickedObject.DefaultBackColor;
                     }
                     _selectedPanel = null;
+                    showResizeHandle = false;
                 }
                 else
                 {
@@ -714,10 +747,16 @@ namespace InteractiveMapControl.cControl
 
                     clickedPanel.BackColor = Color.LightGreen;
                     _selectedPanel = clickedPanel;
+
+                    showResizeHandle = true;
+                    InitializePanel(clickedPanel);
                 }
+
+                clickedPanel.Invalidate();
                 DisplayObjectInfo();
             }
         }
+
 
         private void BackgroundPictureBox_Click(object sender, EventArgs e)
         {
@@ -728,6 +767,7 @@ namespace InteractiveMapControl.cControl
                 if (selectedObject != null)
                 {
                     _selectedPanel.BackColor = selectedObject.DefaultBackColor;
+                    showResizeHandle = false;
                 }
                 _selectedPanel = null;
             }
