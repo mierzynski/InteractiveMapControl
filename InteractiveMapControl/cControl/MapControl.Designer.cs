@@ -33,6 +33,8 @@
             this.listBox = new System.Windows.Forms.ListBox();
             this.backgroundPictureBox = new System.Windows.Forms.PictureBox();
             this.panelScroll = new System.Windows.Forms.Panel();
+            this.groupVisibilityByLevelComboBox = new System.Windows.Forms.ToolStripComboBox();
+            this.toolStrip1.SuspendLayout();
             this.infoPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.backgroundPictureBox)).BeginInit();
             this.panelScroll.SuspendLayout();
@@ -41,6 +43,8 @@
             // toolStrip1
             // 
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
+            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.groupVisibilityByLevelComboBox});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
@@ -88,6 +92,12 @@
             this.panelScroll.Size = new System.Drawing.Size(800, 500);
             this.panelScroll.TabIndex = 8;
             // 
+            // groupVisibilityByLevelComboBox
+            // 
+            this.groupVisibilityByLevelComboBox.Name = "groupVisibilityByLevelComboBox";
+            this.groupVisibilityByLevelComboBox.Size = new System.Drawing.Size(121, 25);
+            this.groupVisibilityByLevelComboBox.SelectedIndexChanged += new System.EventHandler(this.groupVisibilityByLevelComboBox_SelectedIndexChanged);
+            // 
             // MapControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -97,6 +107,8 @@
             this.Controls.Add(this.toolStrip1);
             this.Name = "MapControl";
             this.Size = new System.Drawing.Size(1051, 534);
+            this.toolStrip1.ResumeLayout(false);
+            this.toolStrip1.PerformLayout();
             this.infoPanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.backgroundPictureBox)).EndInit();
             this.panelScroll.ResumeLayout(false);
@@ -111,5 +123,6 @@
         private System.Windows.Forms.ListBox listBox;
         private System.Windows.Forms.PictureBox backgroundPictureBox;
         private System.Windows.Forms.Panel panelScroll;
+        private System.Windows.Forms.ToolStripComboBox groupVisibilityByLevelComboBox;
     }
 }

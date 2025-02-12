@@ -46,6 +46,8 @@ namespace InteractiveMapControl.cControl
             UpdateGrid();
             backgroundPictureBox.Paint += AddAxes_Paint;
 
+            InitializeGroupVisibilityComboBox();
+
             DisplayObjectInfo();
 
             _blinkTimer.Interval = 500;
@@ -847,6 +849,42 @@ namespace InteractiveMapControl.cControl
             DisplayObjectInfo();
         }
 
+        private void groupVisibilityByLevelComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedOption = groupVisibilityByLevelComboBox.SelectedItem.ToString();
+
+            if (selectedOption == "All")
+            {
+                // Jeśli wybrano "All", pokaż wszystkie obiekty
+                UpdateVisibilityByLevels(null);
+            }
+            else if (int.TryParse(selectedOption, out int selectedLevel))
+            {
+                // Jeśli wybrano konkretny Level, pokaż tylko te obiekty
+                UpdateVisibilityByLevels(new List<int> { selectedLevel });
+            }
+        }
+
+        private void UpdateVisibilityByLevels(List<int> selectedLevels)
+        {
+            foreach (var obj in boardObjects)
+            {
+                if (obj.UIElement is Control control)
+                {
+                    control.Visible = (selectedLevels == null || selectedLevels.Contains(obj.Level));
+                }
+            }
+        }
+        private void InitializeGroupVisibilityComboBox()
+        {
+            groupVisibilityByLevelComboBox.Items.Add("All");
+            groupVisibilityByLevelComboBox.Items.Add("1");
+            groupVisibilityByLevelComboBox.Items.Add("2");
+            groupVisibilityByLevelComboBox.Items.Add("3");
+            groupVisibilityByLevelComboBox.Items.Add("4");
+
+            groupVisibilityByLevelComboBox.SelectedIndex = 0; // Domyślnie "All"
+        }
 
     }
 }
