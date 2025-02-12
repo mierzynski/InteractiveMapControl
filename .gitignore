@@ -13,3 +13,6 @@ obj/
 *.xls
 *.xlsx
 *.ods
+
+# Ignorowanie plików o zapisie obiektów na planszy
+boardObjects.json
