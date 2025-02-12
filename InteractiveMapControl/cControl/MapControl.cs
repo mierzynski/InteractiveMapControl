@@ -419,6 +419,7 @@ namespace InteractiveMapControl.cControl
             uiPanel.MouseMove += Rectangle_MouseMove;
             uiPanel.MouseUp += Rectangle_MouseUp;
             uiPanel.DoubleClick += Rectangle_DoubleClick;
+            uiPanel.Click += Rectangle_Click;
             uiPanel.MouseEnter += Rectangle_MouseEnter;
             uiPanel.MouseLeave += Rectangle_MouseLeave;
 
@@ -833,6 +834,23 @@ namespace InteractiveMapControl.cControl
 
 
         private void BackgroundPictureBox_Click(object sender, EventArgs e)
+        {
+            if (_selectedPanel != null)
+            {
+                var selectedObject = _selectedPanel.Tag as BoardObject;
+
+                if (selectedObject != null)
+                {
+                    _selectedPanel.BackColor = selectedObject.DefaultBackColor;
+                    selectedObject.ShowResizeHandle = false;
+                }
+                _selectedPanel = null;
+            }
+
+            DisplayObjectInfo();
+        }
+
+        private void Rectangle_Click(object sender, EventArgs e)
         {
             if (_selectedPanel != null)
             {
