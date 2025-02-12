@@ -25,6 +25,10 @@ namespace InteractiveMapControl.cControl
         private int previousGridSpacing = 20;
         private Bitmap gridBitmap;
 
+        private Timer _blinkTimer = new Timer();
+        private bool _blinkState = true; // Czy trójkąt jest aktualnie widoczny?
+
+
         public MapControl()
         {
             InitializeComponent();
@@ -43,6 +47,9 @@ namespace InteractiveMapControl.cControl
             backgroundPictureBox.Paint += AddAxes_Paint;
 
             DisplayObjectInfo();
+
+            _blinkTimer.Interval = 500;
+            _blinkTimer.Tick += BlinkTimer_Tick;
 
 
             // Ścieżka do pliku CSV
@@ -690,32 +697,30 @@ namespace InteractiveMapControl.cControl
         {
             Cursor = Cursors.Default;
         }
+        private void BlinkTimer_Tick(object sender, EventArgs e)
+        {
+            if (_selectedPanel != null)
+            {
+                var selectedObject = _selectedPanel.Tag as BoardObject;
+                if (selectedObject != null)
+                {
+                    _blinkState = !_blinkState;
+                    selectedObject.ShowResizeHandle = _blinkState;
+                    _selectedPanel.Invalidate();
+                }
+            }
+            else
+            {
+                _blinkTimer.Stop();
+            }
+        }
 
-        //private bool showResizeHandle = false;
         private void InitializePanel(Panel panel)
         {
             panel.Paint -= Panel_Paint;
             panel.Paint += Panel_Paint;
         }
 
-        //private void Panel_Paint(object sender, PaintEventArgs e)
-        //{
-        //    var panel = sender as Panel;
-        //    if (panel == null || !showResizeHandle) return;
-        //    else if (!showResizeHandle) return;
-        //    using (var brush = new SolidBrush(Color.Red))
-        //    {
-        //        int triangleSize = 15;
-        //        Point[] trianglePoints =
-        //        {
-        //    new Point(panel.Width - triangleSize, panel.Height),
-        //    new Point(panel.Width, panel.Height - triangleSize),
-        //    new Point(panel.Width, panel.Height)
-        //};
-
-        //        e.Graphics.FillPolygon(brush, trianglePoints);
-        //    }
-        //}
         private void Panel_Paint(object sender, PaintEventArgs e)
         {
             var panel = sender as Panel;
@@ -755,6 +760,7 @@ namespace InteractiveMapControl.cControl
                     }
                     clickedObject.ShowResizeHandle = false;
                     _selectedPanel = null;
+                    _blinkTimer.Stop();
                 }
                 else
                 {
@@ -773,6 +779,9 @@ namespace InteractiveMapControl.cControl
 
                     clickedObject.ShowResizeHandle = true;
                     InitializePanel(clickedPanel);
+
+                    _blinkState = true;
+                    _blinkTimer.Start();
                 }
 
                 clickedPanel.Invalidate();
@@ -790,7 +799,7 @@ namespace InteractiveMapControl.cControl
                 if (selectedObject != null)
                 {
                     _selectedPanel.BackColor = selectedObject.DefaultBackColor;
-                    //showResizeHandle = false;
+                    selectedObject.ShowResizeHandle = false;
                 }
                 _selectedPanel = null;
             }
