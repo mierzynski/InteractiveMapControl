@@ -71,7 +71,7 @@ namespace InteractiveMapControl.ObjectData
 
         public void CreateObjectsFromXlsxData(
     string filePath,
-    Action<string, double, double, double, double, int, int?, int> addObjectCallback)
+    Action<string, double, double, double, double, int, int, int?> addObjectCallback)
         {
             var xlsObjects = LoadObjectsFromXlsx(filePath);
             double labelX = 0;
@@ -109,9 +109,9 @@ namespace InteractiveMapControl.ObjectData
                     height,
                     labelX,
                     labelY,
+                    Level,
                     xlsObj.ObjectID,
-                    xlsObj.ParentID,
-                    Level
+                    xlsObj.ParentID
                 );
 
                 labelX += 0.5;

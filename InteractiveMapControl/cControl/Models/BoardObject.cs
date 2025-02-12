@@ -12,7 +12,7 @@ namespace InteractiveMapControl.cControl.Models
     {
         public int ObjectID { get; set; }                 
         public string Name { get; set; }
-        //public int Level { get; set; }
+        public int Level { get; set; }
         public BoardObject Parent { get; set; }     // Obiekt rodzic (null, jeśli brak)
         //public int ParentID { get; set; }
         public List<BoardObject> Children { get; set; } = new List<BoardObject>();

@@ -375,14 +375,15 @@ namespace InteractiveMapControl.cControl
         }
 
         public void AddObject(
-    string label,
-    double width,
-    double height,
-    double labelX,
-    double labelY,
-    int id,
-    int? parentId = null,
-    int zIndex = 0)
+            string label,
+            double width,
+            double height,
+            double labelX,
+            double labelY,
+            int level,
+            int id,
+            int? parentId = null
+            )
         {
             Point pixelPosition = ConvertLabelPositionToPixels(labelX, labelY, gridSpacing);
 
@@ -435,7 +436,7 @@ namespace InteractiveMapControl.cControl
                 Category = label,
                 Group = "Default",
                 UIElement = uiPanel,
-                ZIndex = zIndex,
+                Level = level,
                 LocationX = labelX,
                 LocationY = labelY,
                 Width = width,
@@ -456,9 +457,26 @@ namespace InteractiveMapControl.cControl
             DisplayObjectInfo();
         }
 
+        //private void UpdateZIndices()
+        //{
+        //    var sortedObjects = boardObjects.OrderBy(obj => obj.Level).ToList();
+
+        //    foreach (var obj in sortedObjects)
+        //    {
+        //        if (obj.UIElement is Control control)
+        //        {
+        //            control.BringToFront();
+        //        }
+        //    }
+        //}
         private void UpdateZIndices()
         {
-            var sortedObjects = boardObjects.OrderBy(obj => obj.ZIndex).ToList();
+            var sortedObjects = new List<BoardObject>();
+
+            foreach (var obj in boardObjects.Where(o => o.Parent == null).OrderBy(o => o.Level))
+            {
+                AddObjectWithChildren(sortedObjects, obj);
+            }
 
             foreach (var obj in sortedObjects)
             {
@@ -468,6 +486,19 @@ namespace InteractiveMapControl.cControl
                 }
             }
         }
+
+        private void AddObjectWithChildren(List<BoardObject> sortedList, BoardObject parent)
+        {
+            sortedList.Add(parent);
+
+            var children = boardObjects.Where(o => o.Parent == parent).OrderBy(o => o.Level).ToList();
+
+            foreach (var child in children)
+            {
+                AddObjectWithChildren(sortedList, child);
+            }
+        }
+
 
         private void DisplayObjectInfo()
         {
@@ -485,7 +516,16 @@ namespace InteractiveMapControl.cControl
                     listBox.Items.Add($"ID obiektu: {selectedObject.ObjectID}");
                     listBox.Items.Add("-----------------------------");
                     listBox.Items.Add($"Pozycja (X, Y): ({selectedObject.LocationX}, {selectedObject.LocationY})");
-                    listBox.Items.Add($"Poziom (ZIndex): {selectedObject.ZIndex}");
+                    listBox.Items.Add($"Poziom (Level): {selectedObject.Level}");
+                    if (selectedObject.UIElement.Parent != null)
+                    {
+                        int zIndex = selectedObject.UIElement.Parent.Controls.GetChildIndex(selectedObject.UIElement);
+                        listBox.Items.Add($"Z-index: {zIndex}");
+                    }
+                    else
+                    {
+                        listBox.Items.Add("Z-index: Brak nadrzędnego kontenera");
+                    }
                     listBox.Items.Add("-----------------------------");
                     listBox.Items.Add($"Szerokość: {selectedObject.Width}m");
                     listBox.Items.Add($"Wysokość: {selectedObject.Height}m");
