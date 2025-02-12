@@ -25,5 +25,6 @@ namespace InteractiveMapControl.cControl.Models
         public double Width { get; set; }
         public double Height { get; set; }
         public Color DefaultBackColor { get; set; }
+        public bool ShowResizeHandle { get; set; } = false;
     }
 }

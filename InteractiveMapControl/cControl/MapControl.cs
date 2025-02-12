@@ -691,17 +691,39 @@ namespace InteractiveMapControl.cControl
             Cursor = Cursors.Default;
         }
 
-        private bool showResizeHandle = false;
+        //private bool showResizeHandle = false;
         private void InitializePanel(Panel panel)
         {
             panel.Paint -= Panel_Paint;
             panel.Paint += Panel_Paint;
         }
 
+        //private void Panel_Paint(object sender, PaintEventArgs e)
+        //{
+        //    var panel = sender as Panel;
+        //    if (panel == null || !showResizeHandle) return;
+        //    else if (!showResizeHandle) return;
+        //    using (var brush = new SolidBrush(Color.Red))
+        //    {
+        //        int triangleSize = 15;
+        //        Point[] trianglePoints =
+        //        {
+        //    new Point(panel.Width - triangleSize, panel.Height),
+        //    new Point(panel.Width, panel.Height - triangleSize),
+        //    new Point(panel.Width, panel.Height)
+        //};
+
+        //        e.Graphics.FillPolygon(brush, trianglePoints);
+        //    }
+        //}
         private void Panel_Paint(object sender, PaintEventArgs e)
         {
             var panel = sender as Panel;
-            if (panel == null || !showResizeHandle) return;
+            if (panel == null) return;
+
+            var boardObject = panel.Tag as BoardObject;
+            if (boardObject == null || !boardObject.ShowResizeHandle) return;
+
             using (var brush = new SolidBrush(Color.Red))
             {
                 int triangleSize = 15;
@@ -729,10 +751,10 @@ namespace InteractiveMapControl.cControl
                 {
                     if (clickedObject != null)
                     {
-                        clickedPanel.BackColor = clickedObject.DefaultBackColor;
+                        clickedPanel.BackColor = clickedObject.DefaultBackColor;                      
                     }
+                    clickedObject.ShowResizeHandle = false;
                     _selectedPanel = null;
-                    showResizeHandle = false;
                 }
                 else
                 {
@@ -742,13 +764,14 @@ namespace InteractiveMapControl.cControl
                         if (previousObject != null)
                         {
                             _selectedPanel.BackColor = previousObject.DefaultBackColor;
+                            previousObject.ShowResizeHandle = false;
                         }
                     }
 
                     clickedPanel.BackColor = Color.LightGreen;
                     _selectedPanel = clickedPanel;
 
-                    showResizeHandle = true;
+                    clickedObject.ShowResizeHandle = true;
                     InitializePanel(clickedPanel);
                 }
 
@@ -767,7 +790,7 @@ namespace InteractiveMapControl.cControl
                 if (selectedObject != null)
                 {
                     _selectedPanel.BackColor = selectedObject.DefaultBackColor;
-                    showResizeHandle = false;
+                    //showResizeHandle = false;
                 }
                 _selectedPanel = null;
             }
