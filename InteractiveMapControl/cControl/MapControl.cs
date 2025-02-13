@@ -638,6 +638,8 @@ namespace InteractiveMapControl.cControl
 
                         // Odśwież panel, aby trójkąt został narysowany w nowym rozmiarze
                         panel.Invalidate();
+
+                        SaveBoardObjectsToJson();
                     }
                 }
             }
@@ -690,6 +692,7 @@ namespace InteractiveMapControl.cControl
 
                     // Odśwież panel, aby trójkąt został narysowany w nowej pozycji
                     _draggedControl.Invalidate();
+                    SaveBoardObjectsToJson();
                 }
             }
         }
@@ -905,28 +908,10 @@ namespace InteractiveMapControl.cControl
             groupVisibilityByLevelComboBox.SelectedIndex = 0; // Domyślnie "All"
         }
 
-
-        //public void SaveBoardObjectsToJson()
-        //{
-        //    // Uzyskanie ścieżki do katalogu projektu
-        //    string projectDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName;
-
-        //    // Określenie względnej ścieżki zapisu w folderze projektu
-        //    string filePath = Path.Combine(projectDirectory, "boardObjects.json");
-
-        //    // Serializacja obiektów do JSON
-        //    string json = JsonConvert.SerializeObject(boardObjects, Formatting.Indented);
-
-        //    // Zapisanie JSON do pliku w projekcie
-        //    File.WriteAllText(filePath, json);
-        //}
-
         public void SaveBoardObjectsToJson()
         {
-            // Uzyskanie ścieżki do katalogu projektu
             string projectDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName;
 
-            // Określenie względnej ścieżki zapisu w folderze projektu
             string filePath = Path.Combine(projectDirectory, "boardObjects.json");
 
             // Konfiguracja ustawień serializacji z ignorowaniem pętli referencyjnych
@@ -936,10 +921,8 @@ namespace InteractiveMapControl.cControl
                 Formatting = Formatting.Indented
             };
 
-            // Serializacja obiektów do JSON z ustawieniami
             string json = JsonConvert.SerializeObject(boardObjects, settings);
 
-            // Zapisanie JSON do pliku
             File.WriteAllText(filePath, json);
         }
     }

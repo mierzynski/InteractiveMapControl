@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using ClosedXML.Excel;
+using InteractiveMapControl.cControl.Models;
+using Newtonsoft.Json;
 
 namespace InteractiveMapControl.ObjectData
 {
@@ -68,48 +70,132 @@ namespace InteractiveMapControl.ObjectData
                 return new List<XlsObject>();
             }
         }
+        public List<BoardObject> LoadBoardObjectsFromJson()
+        {
+            try
+            {
+                string projectDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName;
+                string filePath = Path.Combine(projectDirectory, "boardObjects.json");
 
+                if (File.Exists(filePath))
+                {
+                    string json = File.ReadAllText(filePath);
+                    return JsonConvert.DeserializeObject<List<BoardObject>>(json);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas wczytywania pliku JSON: {ex.Message}", "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            return new List<BoardObject>();
+        }
+        //    public void CreateObjectsFromXlsxData(
+        //string filePath,
+        //Action<string, double, double, double, double, int, int, int?> addObjectCallback)
+        //    {
+        //        var xlsObjects = LoadObjectsFromXlsx(filePath);
+        //        double labelX = 0;
+        //        double labelY = 0;
+
+        //        foreach (var xlsObj in xlsObjects)
+        //        {
+        //            double size;
+        //            switch (xlsObj.Level)
+        //            {
+        //                case 1:
+        //                    size = 10;
+        //                    break;
+        //                case 2:
+        //                    size = 8;
+        //                    break;
+        //                case 3:
+        //                    size = 6;
+        //                    break;
+        //                default:
+        //                    size = 4; // Domyślny rozmiar dla poziomów powyżej 3
+        //                    break;
+        //            }
+
+        //            double width = size;
+        //            double height = size;
+
+
+
+        //            int Level = xlsObj.Level;
+
+        //            addObjectCallback(
+        //                xlsObj.Name,
+        //                width,
+        //                height,
+        //                labelX,
+        //                labelY,
+        //                Level,
+        //                xlsObj.ObjectID,
+        //                xlsObj.ParentID
+        //            );
+
+        //            labelX += 0.5;
+        //            labelY += 0.5;
+        //        }
+        //    }
         public void CreateObjectsFromXlsxData(
-    string filePath,
-    Action<string, double, double, double, double, int, int, int?> addObjectCallback)
+        string filePath,
+        Action<string, double, double, double, double, int, int, int?> addObjectCallback)
         {
             var xlsObjects = LoadObjectsFromXlsx(filePath);
+            var existingObjects = LoadBoardObjectsFromJson(); // Wczytaj obiekty z JSON
+
             double labelX = 0;
             double labelY = 0;
 
             foreach (var xlsObj in xlsObjects)
             {
-                double size;
-                switch (xlsObj.Level)
+                // Sprawdź, czy obiekt już istnieje w JSON
+                var existingObject = existingObjects.FirstOrDefault(obj => obj.ObjectID == xlsObj.ObjectID);
+
+                double width, height;
+                int level = xlsObj.Level;
+
+                if (existingObject != null)
                 {
-                    case 1:
-                        size = 10;
-                        break;
-                    case 2:
-                        size = 8;
-                        break;
-                    case 3:
-                        size = 6;
-                        break;
-                    default:
-                        size = 4; // Domyślny rozmiar dla poziomów powyżej 3
-                        break;
+                    // Jeśli istnieje, używamy jego wartości
+                    width = existingObject.Width;
+                    height = existingObject.Height;
+                    labelX = existingObject.LocationX;
+                    labelY = existingObject.LocationY;
+                }
+                else
+                {
+                    // Jeśli nie istnieje, stosujemy domyślne wartości na podstawie Level
+                    double size;
+                    switch (level)
+                    {
+                        case 1:
+                            size = 10;
+                            break;
+                        case 2:
+                            size = 8;
+                            break;
+                        case 3:
+                            size = 6;
+                            break;
+                        default:
+                            size = 4;
+                            break;
+                    }
+
+                    width = size;
+                    height = size;
                 }
 
-                double width = size;
-                double height = size;
-
-
-
-                int Level = xlsObj.Level;
-
+                // Wywołanie callbacka do dodania obiektu na planszę
                 addObjectCallback(
                     xlsObj.Name,
                     width,
                     height,
                     labelX,
                     labelY,
-                    Level,
+                    level,
                     xlsObj.ObjectID,
                     xlsObj.ParentID
                 );
@@ -118,6 +204,7 @@ namespace InteractiveMapControl.ObjectData
                 labelY += 0.5;
             }
         }
+
 
 
 
