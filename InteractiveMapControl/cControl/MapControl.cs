@@ -779,6 +779,7 @@ namespace InteractiveMapControl.cControl
                         newHeight = Math.Max(newHeight, minHeight);
 
                         panel.Size = new Size(newWidth, newHeight);
+                        UpdateShadow(boardObject.ObjectID, boardObject.UIElement.Location.X, boardObject.UIElement.Location.Y, newWidth, newHeight);
 
                         boardObject.Width = ConvertSizeFromPixels(newWidth, newHeight, gridSpacing).width;
                         boardObject.Height = ConvertSizeFromPixels(newWidth, newHeight, gridSpacing).height;
@@ -841,6 +842,7 @@ namespace InteractiveMapControl.cControl
                     draggedObject.LocationX = labelPosition.X;
                     draggedObject.LocationY = labelPosition.Y;
                     draggedObject.UIElement.Location = new Point(newX, newY);
+                    UpdateShadow(draggedObject.ObjectID, newX, newY, draggedObject.UIElement.Width, draggedObject.UIElement.Height);
 
                     // Odśwież panel, aby trójkąt został narysowany w nowej pozycji
                     _draggedControl.Invalidate();
@@ -848,6 +850,26 @@ namespace InteractiveMapControl.cControl
                 }
             }
 
+        }
+
+        private void UpdateShadow(int _id, int _x, int _y, int _width, int _height)
+        {
+            // Znajdź PictureBox w shadowObjects, którego nazwa odpowiada {_id}_shadow
+            var shadowPictureBox = shadowObjects.FirstOrDefault(s => s.Name == $"{_id}_shadow");
+            int _newX = _x - (int)(_width * 0.09);
+            int _newY = _y - (int)(_height * 0.09);
+
+            if (shadowPictureBox != null)
+            {
+
+
+                if (isResizing)
+                {
+                    shadowPictureBox.Width = (int)(_width * 1.2);
+                    shadowPictureBox.Height = (int)(_height * 1.2);
+                }   
+                shadowPictureBox.Location = new Point(_newX, _newY);
+            }
         }
         //private void MoveChildrenRecursively(BoardObject parentObject, int deltaX, int deltaY)
         //{
