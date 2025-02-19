@@ -909,10 +909,12 @@ namespace InteractiveMapControl.cControl
             }
             else
             {
-                
+                if(_draggedControl != null)
+                {
                 foreach (Control child in _draggedControl.Controls)
                 {
                     child.Visible = true;
+                }
                 }
                 _draggedControl = null;
             }
@@ -926,6 +928,12 @@ namespace InteractiveMapControl.cControl
             if (panel != null && _selectedPanel == panel)
             {
                 Cursor = Cursors.SizeNWSE;
+                panel.BorderStyle = BorderStyle.FixedSingle;
+                var label = panel.Controls.OfType<Label>().FirstOrDefault();
+                if (label != null)
+                {
+                    label.ForeColor = Color.Black;
+                }
             }
             else if (panel != null && _selectedPanel != panel)
             {  
@@ -985,7 +993,7 @@ namespace InteractiveMapControl.cControl
             var boardObject = panel.Tag as BoardObject;
             if (boardObject == null || !boardObject.ShowResizeHandle) return;
 
-            using (var brush = new SolidBrush(Color.Red))
+            using (var brush = new SolidBrush(Color.FromArgb(41, 126, 227)))
             {
                 int triangleSize = 15;
                 Point[] trianglePoints =
@@ -1030,7 +1038,7 @@ namespace InteractiveMapControl.cControl
                         }
                     }
 
-                    clickedPanel.BackColor = Color.LightGreen;
+                    clickedPanel.BackColor = Color.FromArgb(244,249,255);
                     _selectedPanel = clickedPanel;
 
                     clickedObject.ShowResizeHandle = true;
