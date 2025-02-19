@@ -451,6 +451,7 @@ namespace InteractiveMapControl.cControl
             {
                 Name = $"{id}_label",
                 Text = $"{label}, ID: {id}",
+                ForeColor = Color.FromArgb(172,172,172),
                 AutoSize = true,
                 Location = new Point(5, 5)
             };
@@ -523,18 +524,15 @@ namespace InteractiveMapControl.cControl
             {
                 if (obj.UIElement is Panel panel)
                 {
-                    // Sprawdź, czy cień już istnieje
                     string shadowName = $"{obj.ObjectID}_shadow";
                     if (shadowObjects.Any(s => s.Name == shadowName))
                         continue; // Jeśli cień już istnieje, pomiń
 
-                    // Pobierz współrzędne i rozmiar obiektu
                     int x = panel.Left;
                     int y = panel.Top;
                     int widthPX = panel.Width;
                     int heightPX = panel.Height;
 
-                    // Tworzenie nowego cienia
                     var shadowPictureBox = new PictureBox
                     {
                         Name = shadowName,
@@ -543,16 +541,15 @@ namespace InteractiveMapControl.cControl
                         Location = new Point(x - (int)(widthPX * 0.09), y - (int)(heightPX * 0.09)),
                         Image = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Shadows", "drop_shadow.png")),
                         SizeMode = PictureBoxSizeMode.StretchImage,
-                        BackColor = Color.Transparent
+                        BackColor = Color.Transparent,
+                        Enabled = false,
+                        TabStop = false
                     };
 
-                    // Dodanie cienia do listy
                     shadowObjects.Add(shadowPictureBox);
 
-                    // Znalezienie odpowiedniego rodzica dla cienia
                     Control parentControl = obj.Parent?.UIElement as Control ?? backgroundPictureBox;
 
-                    // Dodanie cienia do rodzica
                     if (!parentControl.Controls.Contains(shadowPictureBox))
                     {
                         parentControl.Controls.Add(shadowPictureBox);
@@ -711,6 +708,18 @@ namespace InteractiveMapControl.cControl
             {
                 _draggedControl = sender as Control;
                 _dragStartPoint = e.Location;
+
+                // Ukrywanie dzieci na czas przesuwania
+                if (_draggedControl != null)
+                {
+                    foreach (Control child in _draggedControl.Controls)
+                    {
+                        if (!(child is Label))
+                        {
+                            child.Visible = false;
+                        }
+                    }
+                }
             }
         }
         private void Rectangle_MouseMove(object sender, MouseEventArgs e)
@@ -900,6 +909,11 @@ namespace InteractiveMapControl.cControl
             }
             else
             {
+                
+                foreach (Control child in _draggedControl.Controls)
+                {
+                    child.Visible = true;
+                }
                 _draggedControl = null;
             }
 
@@ -913,10 +927,30 @@ namespace InteractiveMapControl.cControl
             {
                 Cursor = Cursors.SizeNWSE;
             }
+            else if (panel != null && _selectedPanel != panel)
+            {  
+                panel.BorderStyle = BorderStyle.FixedSingle;
+                var label = panel.Controls.OfType<Label>().FirstOrDefault();
+                if (label != null)
+                {
+                    label.ForeColor = Color.Black;
+                }
+            }
         }
 
         private void Rectangle_MouseLeave(object sender, EventArgs e)
         {
+            var panel = sender as Panel;
+            if (panel != null)
+            {
+                panel.BorderStyle = BorderStyle.None;
+                var label = panel.Controls.OfType<Label>().FirstOrDefault();
+                if (label != null)
+                {
+                    label.ForeColor = Color.FromArgb(172,172,172);
+                }
+            }
+
             Cursor = Cursors.Default;
         }
         private void BlinkTimer_Tick(object sender, EventArgs e)
