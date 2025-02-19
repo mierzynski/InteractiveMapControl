@@ -59,7 +59,7 @@ namespace InteractiveMapControl.cControl
             var csvLoader = new XlsObjectLoader();
             csvLoader.CreateObjectsFromXlsxData(filePath, AddObject);
             AssignParentsToUIElements();
-
+            CreateAndAddShadows();
             //UpdateZIndices();
             DisplayObjectInfo();
 
@@ -442,30 +442,18 @@ namespace InteractiveMapControl.cControl
                 Name = $"{id}_uiPanel",
                 Width = widthPX,
                 Height = heightPX,
-                BackColor = label.Equals("hala", StringComparison.OrdinalIgnoreCase) ? Color.Transparent : Color.LightBlue,
-                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.FromArgb(219,219,219),// szary
+                BorderStyle = BorderStyle.None,
                 Location = new Point(x, y)
             };
 
             var labelControl = new Label
             {
+                Name = $"{id}_label",
                 Text = $"{label}, ID: {id}",
                 AutoSize = true,
                 Location = new Point(5, 5)
             };
-
-            var shadowPictureBox = new PictureBox
-            {
-                Name = $"{id}_shadow",
-                Width = (int)(widthPX * 1.2),
-                Height = (int)(heightPX * 1.2),
-                Location = new Point(x, y),
-                Image = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Shadows", "drop_shadow.png")),
-                SizeMode = PictureBoxSizeMode.StretchImage,
-                BackColor = Color.Transparent
-            };
-
-            shadowObjects.Add(shadowPictureBox);
 
             uiPanel.Controls.Add(labelControl);
 
@@ -529,6 +517,52 @@ namespace InteractiveMapControl.cControl
             }
         }
 
+        private void CreateAndAddShadows()
+        {
+            foreach (var obj in boardObjects)
+            {
+                if (obj.UIElement is Panel panel)
+                {
+                    // Sprawdź, czy cień już istnieje
+                    string shadowName = $"{obj.ObjectID}_shadow";
+                    if (shadowObjects.Any(s => s.Name == shadowName))
+                        continue; // Jeśli cień już istnieje, pomiń
+
+                    // Pobierz współrzędne i rozmiar obiektu
+                    int x = panel.Left;
+                    int y = panel.Top;
+                    int widthPX = panel.Width;
+                    int heightPX = panel.Height;
+
+                    // Tworzenie nowego cienia
+                    var shadowPictureBox = new PictureBox
+                    {
+                        Name = shadowName,
+                        Width = (int)(widthPX * 1.19),
+                        Height = (int)(heightPX * 1.19),
+                        Location = new Point(x - (int)(widthPX * 0.09), y - (int)(heightPX * 0.09)),
+                        Image = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Shadows", "drop_shadow.png")),
+                        SizeMode = PictureBoxSizeMode.StretchImage,
+                        BackColor = Color.Transparent
+                    };
+
+                    // Dodanie cienia do listy
+                    shadowObjects.Add(shadowPictureBox);
+
+                    // Znalezienie odpowiedniego rodzica dla cienia
+                    Control parentControl = obj.Parent?.UIElement as Control ?? backgroundPictureBox;
+
+                    // Dodanie cienia do rodzica
+                    if (!parentControl.Controls.Contains(shadowPictureBox))
+                    {
+                        parentControl.Controls.Add(shadowPictureBox);
+                        shadowPictureBox.SendToBack(); // Ustawienie pod spód
+                    }
+                }
+            }
+        }
+
+
         //private void UpdateZIndices()
         //{
         //    var sortedObjects = boardObjects.OrderBy(obj => obj.Level).ToList();
@@ -541,35 +575,35 @@ namespace InteractiveMapControl.cControl
         //        }
         //    }
         //}
-        private void UpdateZIndices()
-        {
-            var sortedObjects = new List<BoardObject>();
+        //private void UpdateZIndices()
+        //{
+        //    var sortedObjects = new List<BoardObject>();
 
-            foreach (var obj in boardObjects.Where(o => o.Parent == null).OrderBy(o => o.Level))
-            {
-                AddObjectWithChildren(sortedObjects, obj);
-            }
+        //    foreach (var obj in boardObjects.Where(o => o.Parent == null).OrderBy(o => o.Level))
+        //    {
+        //        AddObjectWithChildren(sortedObjects, obj);
+        //    }
 
-            foreach (var obj in sortedObjects)
-            {
-                if (obj.UIElement is Control control)
-                {
-                    control.BringToFront();
-                }
-            }
-        }
+        //    foreach (var obj in sortedObjects)
+        //    {
+        //        if (obj.UIElement is Control control)
+        //        {
+        //            control.BringToFront();
+        //        }
+        //    }
+        //}
 
-        private void AddObjectWithChildren(List<BoardObject> sortedList, BoardObject parent)
-        {
-            sortedList.Add(parent);
+        //private void AddObjectWithChildren(List<BoardObject> sortedList, BoardObject parent)
+        //{
+        //    sortedList.Add(parent);
 
-            var children = boardObjects.Where(o => o.Parent == parent).OrderBy(o => o.Level).ToList();
+        //    var children = boardObjects.Where(o => o.Parent == parent).OrderBy(o => o.Level).ToList();
 
-            foreach (var child in children)
-            {
-                AddObjectWithChildren(sortedList, child);
-            }
-        }
+        //    foreach (var child in children)
+        //    {
+        //        AddObjectWithChildren(sortedList, child);
+        //    }
+        //}
 
 
         private void DisplayObjectInfo()
