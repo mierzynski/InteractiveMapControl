@@ -89,55 +89,6 @@ namespace InteractiveMapControl.ObjectData
             }
             return new List<BoardObject>();
         }
-        //    public void CreateObjectsFromXlsxData(
-        //string filePath,
-        //Action<string, double, double, double, double, int, int, int?> addObjectCallback)
-        //    {
-        //        var xlsObjects = LoadObjectsFromXlsx(filePath);
-        //        double labelX = 0;
-        //        double labelY = 0;
-
-        //        foreach (var xlsObj in xlsObjects)
-        //        {
-        //            double size;
-        //            switch (xlsObj.Level)
-        //            {
-        //                case 1:
-        //                    size = 10;
-        //                    break;
-        //                case 2:
-        //                    size = 8;
-        //                    break;
-        //                case 3:
-        //                    size = 6;
-        //                    break;
-        //                default:
-        //                    size = 4; // Domyślny rozmiar dla poziomów powyżej 3
-        //                    break;
-        //            }
-
-        //            double width = size;
-        //            double height = size;
-
-
-
-        //            int Level = xlsObj.Level;
-
-        //            addObjectCallback(
-        //                xlsObj.Name,
-        //                width,
-        //                height,
-        //                labelX,
-        //                labelY,
-        //                Level,
-        //                xlsObj.ObjectID,
-        //                xlsObj.ParentID
-        //            );
-
-        //            labelX += 0.5;
-        //            labelY += 0.5;
-        //        }
-        //    }
         public void CreateObjectsFromXlsxData(
         string filePath,
         Action<string, double, double, double, double, int, int, int?> addObjectCallback)
@@ -200,8 +151,8 @@ namespace InteractiveMapControl.ObjectData
                     xlsObj.ParentID
                 );
 
-                labelX += 0.5;
-                labelY += 0.5;
+                //labelX += 0.5;
+                //labelY += 0.5;
             }
         }
 

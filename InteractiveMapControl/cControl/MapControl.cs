@@ -49,8 +49,6 @@ namespace InteractiveMapControl.cControl
 
             InitializeGroupVisibilityComboBox();
 
-            DisplayObjectInfo();
-
             _blinkTimer.Interval = 500;
             _blinkTimer.Tick += BlinkTimer_Tick;
 
@@ -59,6 +57,10 @@ namespace InteractiveMapControl.cControl
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ObjectData", "Obiekty.xlsx");
             var csvLoader = new XlsObjectLoader();
             csvLoader.CreateObjectsFromXlsxData(filePath, AddObject);
+            AssignParentsToUIElements();
+
+            UpdateZIndices();
+            DisplayObjectInfo();
 
             SaveBoardObjectsToJson();
         }
@@ -129,7 +131,7 @@ namespace InteractiveMapControl.cControl
                     int newWidth = ConvertSizeToPixels(boardObject.Width, boardObject.Height, gridSpacing).X;
                     int newHeight = ConvertSizeToPixels(boardObject.Width, boardObject.Height, gridSpacing).Y;
 
-                    Point labelPositionInPixels = ConvertLabelPositionToPixels(boardObject.LocationX, boardObject.LocationY, gridSpacing);
+                    Point labelPositionInPixels = ConvertLabelPositionToPixels(boardObject.LocationX, boardObject.LocationY, gridSpacing, boardObject.Level);
 
                     boardObject.UIElement.Location = new Point(labelPositionInPixels.X, labelPositionInPixels.Y);
                     boardObject.UIElement.Size = new Size(newWidth, newHeight);
@@ -313,17 +315,53 @@ namespace InteractiveMapControl.cControl
                 }
             }
         }
-        public Point ConvertLabelPositionToPixels(double labelX, double labelY, int gridSpacing)
+        //public Point ConvertLabelPositionToPixels(double labelX, double labelY, int gridSpacing)
+        //{
+        //     int   pixelX = 25 + (int)((labelX * 2) * gridSpacing);
+        //     int   pixelY = 10 + (int)((labelY * 2) * gridSpacing);
+
+        //    return new Point(pixelX, pixelY);
+        //}
+        public Point ConvertLabelPositionToPixels(double labelX, double labelY, int gridSpacing, int level)
         {
-            int pixelX = 25 + (int)((labelX * 2) * gridSpacing);
-            int pixelY = 10 + (int)((labelY * 2) * gridSpacing);
+            int pixelX;
+            int pixelY;
+
+            if (level < 2)
+            {
+                pixelX = 25 + (int)((labelX * 2) * gridSpacing);
+                pixelY = 10 + (int)((labelY * 2) * gridSpacing);
+            }
+            else
+            {
+                pixelX = (int)((labelX * 2) * gridSpacing);
+                pixelY = (int)((labelY * 2) * gridSpacing);
+            }
+
             return new Point(pixelX, pixelY);
         }
 
-        public PointF ConvertPixelsToLabelPosition(int pixelX, int pixelY, int gridSpacing)
+        //public PointF ConvertPixelsToLabelPosition(int pixelX, int pixelY, int gridSpacing)
+        //{
+        //    double labelX = (pixelX + scrollOffsetX - 25) / (double)(2 * gridSpacing);
+        //    double labelY = (pixelY + scrollOffsetY - 10) / (double)(2 * gridSpacing);
+        //    return new PointF((float)labelX, (float)labelY);
+        //}
+        public PointF ConvertPixelsToLabelPosition(int pixelX, int pixelY, int gridSpacing, int level)
         {
-            double labelX = (pixelX + scrollOffsetX - 25) / (double)(2 * gridSpacing);
-            double labelY = (pixelY + scrollOffsetY - 10) / (double)(2 * gridSpacing);
+            double labelX;
+            double labelY;
+
+            if (level < 2)
+            {
+                labelX = (pixelX + scrollOffsetX - 25) / (double)(2 * gridSpacing);
+                labelY = (pixelY + scrollOffsetY - 10) / (double)(2 * gridSpacing);
+            }
+            else
+            {
+                labelX = (pixelX + scrollOffsetX) / (double)(2 * gridSpacing);
+                labelY = (pixelY + scrollOffsetY) / (double)(2 * gridSpacing);
+            }
             return new PointF((float)labelX, (float)labelY);
         }
 
@@ -388,7 +426,7 @@ namespace InteractiveMapControl.cControl
             int? parentId = null
             )
         {
-            Point pixelPosition = ConvertLabelPositionToPixels(labelX, labelY, gridSpacing);
+            Point pixelPosition = ConvertLabelPositionToPixels(labelX, labelY, gridSpacing, level);
 
             int x = pixelPosition.X;
             int y = pixelPosition.Y;
@@ -400,6 +438,7 @@ namespace InteractiveMapControl.cControl
 
             var uiPanel = new Panel
             {
+                Name = $"{id}_uiPanel",
                 Width = widthPX,
                 Height = heightPX,
                 BackColor = label.Equals("hala", StringComparison.OrdinalIgnoreCase) ? Color.Transparent : Color.LightBlue,
@@ -456,9 +495,24 @@ namespace InteractiveMapControl.cControl
             uiPanel.Tag = boardObject;
 
             boardObjects.Add(boardObject);
+        }
 
-            UpdateZIndices();
-            DisplayObjectInfo();
+        private void AssignParentsToUIElements()
+        {
+            foreach (var obj in boardObjects)
+            {
+                if (obj.UIElement is Control control)
+                {
+                    // Pobranie rodzica z obiektu BoardObject
+                    Control parentControl = obj.Parent?.UIElement as Control ?? backgroundPictureBox;
+
+                    // Jeśli panel nie jest już w rodzicu -> przypisz go do odpowiedniego
+                    if (control.Parent != parentControl)
+                    {
+                        parentControl.Controls.Add(control);
+                    }
+                }
+            }
         }
 
         //private void UpdateZIndices()
@@ -552,17 +606,41 @@ namespace InteractiveMapControl.cControl
                     }
                 }
             }
+            //else
+            //{
+            //    //listBox.Items.Add($"Rozmiar planszy: {backgroundPictureBox.Size}");
+            //    //listBox.Items.Add($"Odstęp siatki (gridSpacing): {gridSpacing}");
+
+            //    //if (xAxisPanel != null)
+            //    //{
+            //    //    listBox.Items.Add($"Panel osi X: {xAxisPanel.Location}");
+            //    //    listBox.Items.Add($"Przesunięcie scrolla Y: {scrollOffsetY}");
+            //    //}
+            //}
             else
             {
-                listBox.Items.Add($"Rozmiar planszy: {backgroundPictureBox.Size}");
-                listBox.Items.Add($"Odstęp siatki (gridSpacing): {gridSpacing}");
+                listBox.Items.Add("Kontrolki na backgroundPictureBox:");
 
-                if (xAxisPanel != null)
+                void DisplayControls(Control parent, int depth = 0)
                 {
-                    listBox.Items.Add($"Panel osi X: {xAxisPanel.Location}");
-                    listBox.Items.Add($"Przesunięcie scrolla Y: {scrollOffsetY}");
+                    for (int i = 0; i < parent.Controls.Count; i++)
+                    {
+                        Control ctrl = parent.Controls[i];
+                        string parentName = ctrl.Parent != null ? ctrl.Parent.Name : "Brak rodzica";
+
+                        // Wcięcie dla lepszej czytelności struktury hierarchicznej
+                        string indent = new string(' ', depth * 4);
+                        listBox.Items.Add($"{indent}ZIndex: {i}, Nazwa: {ctrl.Name}, Rodzic: {parentName}");
+
+                        // Rekurencyjne sprawdzenie dzieci kontrolki
+                        DisplayControls(ctrl, depth + 1);
+                    }
                 }
+
+                // Wywołanie dla backgroundPictureBox
+                DisplayControls(backgroundPictureBox);
             }
+
         }
         private void Rectangle_MouseDown(object sender, MouseEventArgs e)
         {
@@ -611,22 +689,43 @@ namespace InteractiveMapControl.cControl
 
                         if (boardObject.Children.Any())
                         {
-                            int maxChildRight = boardObject.Children.Max(child => child.UIElement.Right);
-                            int maxChildBottom = boardObject.Children.Max(child => child.UIElement.Bottom);
+                            int maxChildRight = int.MinValue;
+                            int maxChildBottom = int.MinValue;
 
-                            minWidth = maxChildRight - panel.Left;
-                            minHeight = maxChildBottom - panel.Top;
+                            foreach (var child in boardObject.Children)
+                            {
+                                if (child.UIElement.Parent != null)
+                                {
+                                    Point childLocationInPanel = panel.PointToClient(child.UIElement.Parent.PointToScreen(child.UIElement.Location));
+
+                                    int childRight = childLocationInPanel.X + child.UIElement.Width;
+                                    int childBottom = childLocationInPanel.Y + child.UIElement.Height;
+
+                                    maxChildRight = Math.Max(maxChildRight, childRight);
+                                    maxChildBottom = Math.Max(maxChildBottom, childBottom);
+                                }
+                            }
+
+                            if (maxChildRight != int.MinValue && maxChildBottom != int.MinValue)
+                            {
+                                minWidth = maxChildRight;
+                                minHeight = maxChildBottom;
+                            }
                         }
 
                         if (boardObject.Parent != null && boardObject.Parent.UIElement != null)
                         {
-                            var parentBounds = boardObject.Parent.UIElement.Bounds;
-                            int maxWidth = parentBounds.Width - (panel.Left - parentBounds.Left);
-                            int maxHeight = parentBounds.Height - (panel.Top - parentBounds.Top);
+                            var parentControl = boardObject.Parent.UIElement;
+
+                            Point panelLocationInParent = parentControl.PointToClient(panel.Parent.PointToScreen(panel.Location));
+
+                            int maxWidth = parentControl.Width - panelLocationInParent.X;
+                            int maxHeight = parentControl.Height - panelLocationInParent.Y;
 
                             newWidth = Math.Min(newWidth, maxWidth);
                             newHeight = Math.Min(newHeight, maxHeight);
                         }
+
 
                         newWidth = Math.Max(newWidth, minWidth);
                         newHeight = Math.Max(newHeight, minHeight);
@@ -648,19 +747,29 @@ namespace InteractiveMapControl.cControl
                 int newX = _draggedControl.Left + e.X - _dragStartPoint.X;
                 int newY = _draggedControl.Top + e.Y - _dragStartPoint.Y;
 
-                newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
-                newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
-
                 var draggedObject = _draggedControl.Tag as BoardObject;
                 if (draggedObject != null)
                 {
+                    if (draggedObject.Level < 2)
+                    {
+                        newX = ((newX - 25 + gridSpacing / 2) / gridSpacing) * gridSpacing + 25;
+                        newY = ((newY - 10 + gridSpacing / 2) / gridSpacing) * gridSpacing + 10;
+                    }
+                    else
+                    {
+                        newX = ((newX + gridSpacing / 2) / gridSpacing) * gridSpacing;
+                        newY = ((newY + gridSpacing / 2) / gridSpacing) * gridSpacing;
+                    }
+
+
                     if (draggedObject.Parent != null && draggedObject.Parent.UIElement != null)
                     {
-                        var parentBounds = draggedObject.Parent.UIElement.Bounds;
-                        int parentLeft = parentBounds.Left;
-                        int parentTop = parentBounds.Top;
-                        int parentRight = parentBounds.Right;
-                        int parentBottom = parentBounds.Bottom;
+                        Control parentControl = draggedObject.Parent?.UIElement as Control ?? backgroundPictureBox;
+
+                        int parentLeft = 0;
+                        int parentTop = 0;
+                        int parentRight = parentControl.Width;
+                        int parentBottom = parentControl.Height;
 
                         int maxX = parentRight - _draggedControl.Width;
                         int maxY = parentBottom - _draggedControl.Height;
@@ -677,45 +786,41 @@ namespace InteractiveMapControl.cControl
                         newY = Math.Max(10, Math.Min(newY, maxY));
                     }
 
-                    int deltaX = newX - _draggedControl.Left;
-                    int deltaY = newY - _draggedControl.Top;
-
                     _draggedControl.Left = newX;
                     _draggedControl.Top = newY;
 
-                    PointF labelPosition = ConvertPixelsToLabelPosition(newX, newY, gridSpacing);
+                    PointF labelPosition = ConvertPixelsToLabelPosition(newX, newY, gridSpacing, draggedObject.Level);
                     draggedObject.LocationX = labelPosition.X;
                     draggedObject.LocationY = labelPosition.Y;
                     draggedObject.UIElement.Location = new Point(newX, newY);
-
-                    MoveChildrenRecursively(draggedObject, deltaX, deltaY);
 
                     // Odśwież panel, aby trójkąt został narysowany w nowej pozycji
                     _draggedControl.Invalidate();
                     SaveBoardObjectsToJson();
                 }
             }
-        }
-        private void MoveChildrenRecursively(BoardObject parentObject, int deltaX, int deltaY)
-        {
-            if (parentObject.Children != null && parentObject.Children.Any())
-            {
-                foreach (var child in parentObject.Children)
-                {
-                    if (child.UIElement != null)
-                    {
-                        child.UIElement.Left += deltaX;
-                        child.UIElement.Top += deltaY;
 
-                        PointF childLabelPosition = ConvertPixelsToLabelPosition(child.UIElement.Left, child.UIElement.Top, gridSpacing);
-                        child.LocationX = childLabelPosition.X;
-                        child.LocationY = childLabelPosition.Y;
-
-                        MoveChildrenRecursively(child, deltaX, deltaY);
-                    }
-                }
-            }
         }
+        //private void MoveChildrenRecursively(BoardObject parentObject, int deltaX, int deltaY)
+        //{
+        //    if (parentObject.Children != null && parentObject.Children.Any())
+        //    {
+        //        foreach (var child in parentObject.Children)
+        //        {
+        //            if (child.UIElement != null)
+        //            {
+        //                child.UIElement.Left += deltaX;
+        //                child.UIElement.Top += deltaY;
+
+        //                PointF childLabelPosition = ConvertPixelsToLabelPosition(child.UIElement.Left, child.UIElement.Top, gridSpacing, child.Level);
+        //                child.LocationX = childLabelPosition.X;
+        //                child.LocationY = childLabelPosition.Y;
+
+        //                MoveChildrenRecursively(child, deltaX, deltaY);
+        //            }
+        //        }
+        //    }
+        //}
 
         private void Rectangle_MouseUp(object sender, MouseEventArgs e)
         {
