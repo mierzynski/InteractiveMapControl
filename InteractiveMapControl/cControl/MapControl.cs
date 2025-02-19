@@ -17,6 +17,7 @@ namespace InteractiveMapControl.cControl
         private Point _dragStartPoint;
         private Control _draggedControl;
         private List<BoardObject> boardObjects = new List<BoardObject>();
+        private List<PictureBox> shadowObjects = new List<PictureBox>();
         private Panel _selectedPanel;
         private bool isResizing = false;
         private Point resizeStartPoint;
@@ -59,7 +60,7 @@ namespace InteractiveMapControl.cControl
             csvLoader.CreateObjectsFromXlsxData(filePath, AddObject);
             AssignParentsToUIElements();
 
-            UpdateZIndices();
+            //UpdateZIndices();
             DisplayObjectInfo();
 
             SaveBoardObjectsToJson();
@@ -452,6 +453,19 @@ namespace InteractiveMapControl.cControl
                 AutoSize = true,
                 Location = new Point(5, 5)
             };
+
+            var shadowPictureBox = new PictureBox
+            {
+                Name = $"{id}_shadow",
+                Width = (int)(widthPX * 1.2),
+                Height = (int)(heightPX * 1.2),
+                Location = new Point(x, y),
+                Image = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Shadows", "drop_shadow.png")),
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                BackColor = Color.Transparent
+            };
+
+            shadowObjects.Add(shadowPictureBox);
 
             uiPanel.Controls.Add(labelControl);
 
