@@ -34,6 +34,7 @@
             this.listBox = new System.Windows.Forms.ListBox();
             this.backgroundPictureBox = new System.Windows.Forms.PictureBox();
             this.panelScroll = new System.Windows.Forms.Panel();
+            this.findObjectComboBox = new System.Windows.Forms.ToolStripComboBox();
             this.toolStrip1.SuspendLayout();
             this.infoPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.backgroundPictureBox)).BeginInit();
@@ -44,7 +45,8 @@
             // 
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.groupVisibilityByLevelComboBox});
+            this.groupVisibilityByLevelComboBox,
+            this.findObjectComboBox});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
@@ -98,6 +100,12 @@
             this.panelScroll.Size = new System.Drawing.Size(800, 500);
             this.panelScroll.TabIndex = 8;
             // 
+            // findObjectComboBox
+            // 
+            this.findObjectComboBox.Name = "findObjectComboBox";
+            this.findObjectComboBox.Size = new System.Drawing.Size(121, 25);
+            this.findObjectComboBox.SelectedIndexChanged += new System.EventHandler(this.findObjectComboBox_SelectedIndexChanged);
+            // 
             // MapControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -124,5 +132,6 @@
         private System.Windows.Forms.PictureBox backgroundPictureBox;
         private System.Windows.Forms.Panel panelScroll;
         private System.Windows.Forms.ToolStripComboBox groupVisibilityByLevelComboBox;
+        private System.Windows.Forms.ToolStripComboBox findObjectComboBox;
     }
 }

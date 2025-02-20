@@ -62,6 +62,7 @@ namespace InteractiveMapControl.cControl
             CreateAndAddShadows();
             //UpdateZIndices();
             DisplayObjectInfo();
+            AddObjectsToFindObjectComboBox();
 
             SaveBoardObjectsToJson();
         }
@@ -1169,6 +1170,46 @@ namespace InteractiveMapControl.cControl
 
             groupVisibilityByLevelComboBox.SelectedIndex = 0; // Domyślnie "All"
         }
+
+        private void AddObjectsToFindObjectComboBox()
+        {
+            findObjectComboBox.Items.Clear();
+            findObjectComboBox.Items.Add("Brak wybranego obiektu");
+
+            foreach (var obj in boardObjects)
+            {
+                findObjectComboBox.Items.Add($"{obj.Name} (ID: {obj.ObjectID})");
+            }
+
+            findObjectComboBox.SelectedIndex = 0;
+        }
+
+        private void findObjectComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            foreach (var obj in boardObjects)
+            {
+                if (obj.UIElement is Control control)
+                    control.BackColor = obj.DefaultBackColor;
+            }
+
+            if (findObjectComboBox.SelectedIndex > 0)
+            {
+                string selectedText = findObjectComboBox.SelectedItem.ToString();
+                int startIndex = selectedText.LastIndexOf("ID: ") + 4;
+                int endIndex = selectedText.IndexOf(")", startIndex);
+
+                if (int.TryParse(selectedText.Substring(startIndex, endIndex - startIndex), out int selectedID))
+                {
+                    var selectedObject = boardObjects.FirstOrDefault(obj => obj.ObjectID == selectedID);
+                    if (selectedObject?.UIElement is Control control)
+                    {
+                        control.BackColor = Color.LightBlue;
+                    }
+                }
+            }
+        }
+
+
 
         public void SaveBoardObjectsToJson()
         {
