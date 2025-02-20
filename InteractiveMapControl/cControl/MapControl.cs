@@ -30,6 +30,11 @@ namespace InteractiveMapControl.cControl
         private Timer _blinkTimer = new Timer();
         private bool _blinkState = true; // Czy trójkąt jest aktualnie widoczny?
 
+        private readonly Color DefaultGreyColor = Color.FromArgb(219, 219, 219);
+        private readonly Color DarkGreyColor = Color.FromArgb(172, 172, 172);
+        private readonly Color SelectionColor = Color.FromArgb(244, 249, 255); 
+        private readonly Color CustomBlueColor = Color.FromArgb(41, 126, 227); 
+
 
         public MapControl()
         {
@@ -446,7 +451,7 @@ namespace InteractiveMapControl.cControl
                 Name = $"{id}_uiPanel",
                 Width = widthPX,
                 Height = heightPX,
-                BackColor = Color.FromArgb(219,219,219),// szary
+                BackColor = DefaultGreyColor,
                 BorderStyle = BorderStyle.None,
                 Location = new Point(x, y)
             };
@@ -455,7 +460,7 @@ namespace InteractiveMapControl.cControl
             {
                 Name = $"{id}_label",
                 Text = $"{label}, ID: {id}",
-                ForeColor = Color.FromArgb(172,172,172),
+                ForeColor = DarkGreyColor,
                 AutoSize = true,
                 Location = new Point(5, 5)
             };
@@ -984,7 +989,7 @@ namespace InteractiveMapControl.cControl
                 var label = panel.Controls.OfType<Label>().FirstOrDefault();
                 if (label != null)
                 {
-                    label.ForeColor = Color.FromArgb(172,172,172);
+                    label.ForeColor = DarkGreyColor;
                 }
             }
 
@@ -1022,7 +1027,7 @@ namespace InteractiveMapControl.cControl
             var boardObject = panel.Tag as BoardObject;
             if (boardObject == null || !boardObject.ShowResizeHandle) return;
 
-            using (var brush = new SolidBrush(Color.FromArgb(41, 126, 227)))
+            using (var brush = new SolidBrush(CustomBlueColor))
             {
                 int triangleSize = 15;
                 Point[] trianglePoints =
@@ -1067,7 +1072,7 @@ namespace InteractiveMapControl.cControl
                         }
                     }
 
-                    clickedPanel.BackColor = Color.FromArgb(244,249,255);
+                    clickedPanel.BackColor = SelectionColor;
                     _selectedPanel = clickedPanel;
 
                     clickedObject.ShowResizeHandle = true;
@@ -1203,7 +1208,7 @@ namespace InteractiveMapControl.cControl
                     var selectedObject = boardObjects.FirstOrDefault(obj => obj.ObjectID == selectedID);
                     if (selectedObject?.UIElement is Control control)
                     {
-                        control.BackColor = Color.LightBlue;
+                        control.BackColor = SelectionColor;
                     }
                 }
             }
