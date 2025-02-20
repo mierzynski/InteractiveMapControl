@@ -117,30 +117,6 @@ namespace InteractiveMapControl.cControl
             DisplayObjectInfo();
         }
 
-
-        private void UpdateObjectSizes()
-        {
-            int differenceGridSpacing = 0;
-            float scaleFactor = gridSpacing / 20.0f;
-
-            if (gridSpacing != previousGridSpacing)
-            {
-                differenceGridSpacing = gridSpacing - previousGridSpacing;
-                previousGridSpacing = gridSpacing;
-                foreach (var boardObject in boardObjects)
-                {
-                    int newWidth = ConvertSizeToPixels(boardObject.Width, boardObject.Height, gridSpacing).X;
-                    int newHeight = ConvertSizeToPixels(boardObject.Width, boardObject.Height, gridSpacing).Y;
-
-                    Point labelPositionInPixels = ConvertLabelPositionToPixels(boardObject.LocationX, boardObject.LocationY, gridSpacing, boardObject.Level);
-
-                    boardObject.UIElement.Location = new Point(labelPositionInPixels.X, labelPositionInPixels.Y);
-                    boardObject.UIElement.Size = new Size(newWidth, newHeight);
-                }
-            }
-
-        }
-
         private void UpdateGrid()
         {
             int gridUnits = 200; // 100m / 0.5m = 200 jednostek
@@ -163,6 +139,33 @@ namespace InteractiveMapControl.cControl
                 xAxisPanel.Width = backgroundPictureBox.Width;
             }
         }
+
+
+        private void UpdateObjectSizes()
+        {
+            int differenceGridSpacing = 0;
+            float scaleFactor = gridSpacing / 20.0f;
+
+            if (gridSpacing != previousGridSpacing)
+            {
+                differenceGridSpacing = gridSpacing - previousGridSpacing;  
+                foreach (var boardObject in boardObjects)
+                {
+                    int newWidth = ConvertSizeToPixels(boardObject.Width, boardObject.Height, gridSpacing).X;
+                    int newHeight = ConvertSizeToPixels(boardObject.Width, boardObject.Height, gridSpacing).Y;
+
+                    Point labelPositionInPixels = ConvertLabelPositionToPixels(boardObject.LocationX, boardObject.LocationY, gridSpacing, boardObject.Level);
+
+                    boardObject.UIElement.Location = new Point(labelPositionInPixels.X, labelPositionInPixels.Y);
+                    boardObject.UIElement.Size = new Size(newWidth, newHeight);
+                    UpdateShadow(boardObject.ObjectID, boardObject.UIElement.Location.X, boardObject.UIElement.Location.Y, boardObject.UIElement.Width, boardObject.UIElement.Height);
+                }
+                previousGridSpacing = gridSpacing;
+            }
+
+        }
+
+
 
         private Panel yAxisPanel;
         private int scrollOffsetX = 0;
@@ -662,29 +665,62 @@ namespace InteractiveMapControl.cControl
             //    //    listBox.Items.Add($"Przesunięcie scrolla Y: {scrollOffsetY}");
             //    //}
             //}
+            //else
+            //{
+            //    //WYŚWIETLANIE Z INDEKSÓW
+            //    //listBox.Items.Add("Kontrolki na backgroundPictureBox:");
+
+            //    //void DisplayControls(Control parent, int depth = 0)
+            //    //{
+            //    //    for (int i = 0; i < parent.Controls.Count; i++)
+            //    //    {
+            //    //        Control ctrl = parent.Controls[i];
+            //    //        string parentName = ctrl.Parent != null ? ctrl.Parent.Name : "Brak rodzica";
+
+            //    //        // Wcięcie dla lepszej czytelności struktury hierarchicznej
+            //    //        string indent = new string(' ', depth * 4);
+            //    //        listBox.Items.Add($"{indent}ZIndex: {i}, Nazwa: {ctrl.Name}, Rodzic: {parentName}");
+
+            //    //        // Rekurencyjne sprawdzenie dzieci kontrolki
+            //    //        DisplayControls(ctrl, depth + 1);
+            //    //    }
+            //    //}
+
+            //    //// Wywołanie dla backgroundPictureBox
+            //    //DisplayControls(backgroundPictureBox);
+
+            //}
             else
             {
-                listBox.Items.Add("Kontrolki na backgroundPictureBox:");
-
-                void DisplayControls(Control parent, int depth = 0)
+                // Znajdź obiekt o ID 9 w liście boardObjects
+                var boardObject = boardObjects.FirstOrDefault(obj => obj.ObjectID == 9);
+                if (boardObject?.UIElement != null)
                 {
-                    for (int i = 0; i < parent.Controls.Count; i++)
-                    {
-                        Control ctrl = parent.Controls[i];
-                        string parentName = ctrl.Parent != null ? ctrl.Parent.Name : "Brak rodzica";
+                    Control element = boardObject.UIElement;
 
-                        // Wcięcie dla lepszej czytelności struktury hierarchicznej
-                        string indent = new string(' ', depth * 4);
-                        listBox.Items.Add($"{indent}ZIndex: {i}, Nazwa: {ctrl.Name}, Rodzic: {parentName}");
-
-                        // Rekurencyjne sprawdzenie dzieci kontrolki
-                        DisplayControls(ctrl, depth + 1);
-                    }
+                    listBox.Items.Add($"[UIElement] ID: 9");
+                    listBox.Items.Add($"   Lokalizacja: {element.Location}");
+                    listBox.Items.Add($"   Rozmiar: {element.Size}");
+                }
+                else
+                {
+                    listBox.Items.Add("[UIElement] Obiekt o ID 9 nie został znaleziony.");
                 }
 
-                // Wywołanie dla backgroundPictureBox
-                DisplayControls(backgroundPictureBox);
+                // Znajdź cień o nazwie "9_shadow" w liście shadowObjects
+                var shadowObject = shadowObjects.FirstOrDefault(s => s.Name == "9_shadow");
+                if (shadowObject != null)
+                {
+                    listBox.Items.Add($"[Shadow] ID: 9");
+                    listBox.Items.Add($"   Lokalizacja: {shadowObject.Location}");
+                    listBox.Items.Add($"   Rozmiar: {shadowObject.Size}");
+                }
+                else
+                {
+                    listBox.Items.Add("[Shadow] Cień dla obiektu o ID 9 nie został znaleziony.");
+                }
             }
+
 
         }
         private void Rectangle_MouseDown(object sender, MouseEventArgs e)
@@ -867,39 +903,31 @@ namespace InteractiveMapControl.cControl
             var shadowPictureBox = shadowObjects.FirstOrDefault(s => s.Name == $"{_id}_shadow");
             int _newX = _x - (int)(_width * 0.09);
             int _newY = _y - (int)(_height * 0.09);
+            int _differenceGridSpacing = 0;
 
             if (shadowPictureBox != null)
             {
-
-
                 if (isResizing)
                 {
                     shadowPictureBox.Width = (int)(_width * 1.2);
                     shadowPictureBox.Height = (int)(_height * 1.2);
                 }   
-                shadowPictureBox.Location = new Point(_newX, _newY);
+
+                if (gridSpacing != previousGridSpacing)
+                {
+                    shadowPictureBox.Width = (int)(_width * 1.2);
+                    shadowPictureBox.Height = (int)(_height * 1.2);
+                    shadowPictureBox.Location = new Point(_newX, _newY);
+
+                }
+                else
+                {
+                    shadowPictureBox.Location = new Point(_newX, _newY);
+                }
             }
+
         }
-        //private void MoveChildrenRecursively(BoardObject parentObject, int deltaX, int deltaY)
-        //{
-        //    if (parentObject.Children != null && parentObject.Children.Any())
-        //    {
-        //        foreach (var child in parentObject.Children)
-        //        {
-        //            if (child.UIElement != null)
-        //            {
-        //                child.UIElement.Left += deltaX;
-        //                child.UIElement.Top += deltaY;
 
-        //                PointF childLabelPosition = ConvertPixelsToLabelPosition(child.UIElement.Left, child.UIElement.Top, gridSpacing, child.Level);
-        //                child.LocationX = childLabelPosition.X;
-        //                child.LocationY = childLabelPosition.Y;
-
-        //                MoveChildrenRecursively(child, deltaX, deltaY);
-        //            }
-        //        }
-        //    }
-        //}
 
         private void Rectangle_MouseUp(object sender, MouseEventArgs e)
         {
