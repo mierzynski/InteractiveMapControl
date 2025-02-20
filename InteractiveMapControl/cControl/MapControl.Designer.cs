@@ -29,11 +29,11 @@
         private void InitializeComponent()
         {
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.groupVisibilityByLevelComboBox = new System.Windows.Forms.ToolStripComboBox();
             this.infoPanel = new System.Windows.Forms.Panel();
             this.listBox = new System.Windows.Forms.ListBox();
             this.backgroundPictureBox = new System.Windows.Forms.PictureBox();
             this.panelScroll = new System.Windows.Forms.Panel();
-            this.groupVisibilityByLevelComboBox = new System.Windows.Forms.ToolStripComboBox();
             this.toolStrip1.SuspendLayout();
             this.infoPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.backgroundPictureBox)).BeginInit();
@@ -51,6 +51,12 @@
             this.toolStrip1.Size = new System.Drawing.Size(1051, 25);
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
+            // 
+            // groupVisibilityByLevelComboBox
+            // 
+            this.groupVisibilityByLevelComboBox.Name = "groupVisibilityByLevelComboBox";
+            this.groupVisibilityByLevelComboBox.Size = new System.Drawing.Size(121, 25);
+            this.groupVisibilityByLevelComboBox.SelectedIndexChanged += new System.EventHandler(this.groupVisibilityByLevelComboBox_SelectedIndexChanged);
             // 
             // infoPanel
             // 
@@ -91,12 +97,6 @@
             this.panelScroll.Name = "panelScroll";
             this.panelScroll.Size = new System.Drawing.Size(800, 500);
             this.panelScroll.TabIndex = 8;
-            // 
-            // groupVisibilityByLevelComboBox
-            // 
-            this.groupVisibilityByLevelComboBox.Name = "groupVisibilityByLevelComboBox";
-            this.groupVisibilityByLevelComboBox.Size = new System.Drawing.Size(121, 25);
-            this.groupVisibilityByLevelComboBox.SelectedIndexChanged += new System.EventHandler(this.groupVisibilityByLevelComboBox_SelectedIndexChanged);
             // 
             // MapControl
             // 

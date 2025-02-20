@@ -939,10 +939,10 @@ namespace InteractiveMapControl.cControl
             {
                 if(_draggedControl != null)
                 {
-                foreach (Control child in _draggedControl.Controls)
-                {
-                    child.Visible = true;
-                }
+                    foreach (Control child in _draggedControl.Controls)
+                    {
+                        child.Visible = true;
+                    }
                 }
                 _draggedControl = null;
             }
@@ -1122,12 +1122,10 @@ namespace InteractiveMapControl.cControl
 
             if (selectedOption == "All")
             {
-                // Jeśli wybrano "All", pokaż wszystkie obiekty
                 UpdateVisibilityByLevels(null);
             }
             else if (int.TryParse(selectedOption, out int selectedLevel))
             {
-                // Jeśli wybrano konkretny Level, pokaż tylko te obiekty
                 UpdateVisibilityByLevels(new List<int> { selectedLevel });
             }
         }
@@ -1138,10 +1136,29 @@ namespace InteractiveMapControl.cControl
             {
                 if (obj.UIElement is Control control)
                 {
-                    control.Visible = (selectedLevels == null || selectedLevels.Contains(obj.Level));
+                    bool isVisible = selectedLevels == null || selectedLevels.Contains(obj.Level);
+
+                    if (selectedLevels != null && selectedLevels.Count == 1 && selectedLevels.Contains(1))
+                    {
+                        control.Visible = isVisible;
+                        control.BackColor = isVisible ? obj.DefaultBackColor : Color.Transparent;
+                    }
+                    else
+                    {
+                        control.Visible = true;
+                        control.BackColor = isVisible ? obj.DefaultBackColor : Color.Transparent;
+                    }
+                    string shadowName = $"{obj.ObjectID}_shadow";
+                    var shadow = shadowObjects.FirstOrDefault(s => s.Name == shadowName);
+                    if (shadow != null)
+                    {
+                        shadow.Visible = isVisible;
+                    }
                 }
             }
         }
+
+
         private void InitializeGroupVisibilityComboBox()
         {
             groupVisibilityByLevelComboBox.Items.Add("All");
