@@ -30,11 +30,11 @@
         {
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.groupVisibilityByLevelComboBox = new System.Windows.Forms.ToolStripComboBox();
+            this.findObjectComboBox = new System.Windows.Forms.ToolStripComboBox();
             this.infoPanel = new System.Windows.Forms.Panel();
             this.listBox = new System.Windows.Forms.ListBox();
             this.backgroundPictureBox = new System.Windows.Forms.PictureBox();
             this.panelScroll = new System.Windows.Forms.Panel();
-            this.findObjectComboBox = new System.Windows.Forms.ToolStripComboBox();
             this.toolStrip1.SuspendLayout();
             this.infoPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.backgroundPictureBox)).BeginInit();
@@ -60,13 +60,20 @@
             this.groupVisibilityByLevelComboBox.Size = new System.Drawing.Size(121, 25);
             this.groupVisibilityByLevelComboBox.SelectedIndexChanged += new System.EventHandler(this.groupVisibilityByLevelComboBox_SelectedIndexChanged);
             // 
+            // findObjectComboBox
+            // 
+            this.findObjectComboBox.Name = "findObjectComboBox";
+            this.findObjectComboBox.Size = new System.Drawing.Size(121, 25);
+            this.findObjectComboBox.SelectedIndexChanged += new System.EventHandler(this.findObjectComboBox_SelectedIndexChanged);
+            // 
             // infoPanel
             // 
             this.infoPanel.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.infoPanel.Controls.Add(this.listBox);
-            this.infoPanel.Location = new System.Drawing.Point(806, 25);
+            this.infoPanel.Dock = System.Windows.Forms.DockStyle.Right;
+            this.infoPanel.Location = new System.Drawing.Point(809, 25);
             this.infoPanel.Name = "infoPanel";
-            this.infoPanel.Size = new System.Drawing.Size(242, 500);
+            this.infoPanel.Size = new System.Drawing.Size(242, 509);
             this.infoPanel.TabIndex = 6;
             // 
             // listBox
@@ -76,7 +83,7 @@
             this.listBox.FormattingEnabled = true;
             this.listBox.Location = new System.Drawing.Point(0, 0);
             this.listBox.Name = "listBox";
-            this.listBox.Size = new System.Drawing.Size(242, 500);
+            this.listBox.Size = new System.Drawing.Size(242, 509);
             this.listBox.TabIndex = 0;
             // 
             // backgroundPictureBox
@@ -92,19 +99,15 @@
             // 
             this.panelScroll.AutoScroll = true;
             this.panelScroll.AutoScrollMinSize = new System.Drawing.Size(600, 600);
+            this.panelScroll.AutoSize = true;
             this.panelScroll.Controls.Add(this.backgroundPictureBox);
             this.panelScroll.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelScroll.Location = new System.Drawing.Point(0, 25);
-            this.panelScroll.MaximumSize = new System.Drawing.Size(800, 500);
+            this.panelScroll.MaximumSize = new System.Drawing.Size(1800, 1500);
+            this.panelScroll.MinimumSize = new System.Drawing.Size(800, 500);
             this.panelScroll.Name = "panelScroll";
-            this.panelScroll.Size = new System.Drawing.Size(800, 500);
+            this.panelScroll.Size = new System.Drawing.Size(809, 509);
             this.panelScroll.TabIndex = 8;
-            // 
-            // findObjectComboBox
-            // 
-            this.findObjectComboBox.Name = "findObjectComboBox";
-            this.findObjectComboBox.Size = new System.Drawing.Size(121, 25);
-            this.findObjectComboBox.SelectedIndexChanged += new System.EventHandler(this.findObjectComboBox_SelectedIndexChanged);
             // 
             // MapControl
             // 

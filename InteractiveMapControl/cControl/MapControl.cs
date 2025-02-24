@@ -7,6 +7,8 @@ using System.Linq;
 using InteractiveMapControl.ObjectData;
 using System.IO;
 using Newtonsoft.Json;
+using System.Diagnostics;
+using System.ComponentModel;
 //using System.Reflection.Emit;
 
 
@@ -58,18 +60,31 @@ namespace InteractiveMapControl.cControl
             _blinkTimer.Interval = 500;
             _blinkTimer.Tick += BlinkTimer_Tick;
 
+            bool designModeCheck = (LicenseManager.UsageMode == LicenseUsageMode.Designtime);
+            if (!designModeCheck)
+            {
+                try
+                {
+                    // Ścieżka do pliku CSV
+                    string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ObjectData", "Obiekty.xlsx");
+                    var csvLoader = new XlsObjectLoader();
+                    csvLoader.CreateObjectsFromXlsxData(filePath, AddObject);
 
-            // Ścieżka do pliku CSV
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ObjectData", "Obiekty.xlsx");
-            var csvLoader = new XlsObjectLoader();
-            csvLoader.CreateObjectsFromXlsxData(filePath, AddObject);
-            AssignParentsToUIElements();
-            CreateAndAddShadows();
-            //UpdateZIndices();
-            DisplayObjectInfo();
-            AddObjectsToFindObjectComboBox();
+                    AssignParentsToUIElements();
+                    CreateAndAddShadows();
+                    //UpdateZIndices();
+                    DisplayObjectInfo();
+                    AddObjectsToFindObjectComboBox();
 
-            SaveBoardObjectsToJson();
+                    SaveBoardObjectsToJson();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Błąd wczytywania XLSX: {ex.Message}");
+                }
+            }
+
+
         }
 
         public static int Clamp(int value, int min, int max)

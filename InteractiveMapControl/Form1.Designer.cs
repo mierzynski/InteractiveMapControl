@@ -33,10 +33,12 @@
             // 
             // mapControl1
             // 
-            this.mapControl1.Location = new System.Drawing.Point(4, 4);
+            this.mapControl1.AutoSize = true;
+            this.mapControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mapControl1.Location = new System.Drawing.Point(0, 0);
             this.mapControl1.Margin = new System.Windows.Forms.Padding(4);
             this.mapControl1.Name = "mapControl1";
-            this.mapControl1.Size = new System.Drawing.Size(1051, 534);
+            this.mapControl1.Size = new System.Drawing.Size(1107, 570);
             this.mapControl1.TabIndex = 0;
             // 
             // Form1
@@ -49,6 +51,7 @@
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
