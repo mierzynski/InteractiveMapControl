@@ -99,14 +99,15 @@ namespace InteractiveMapControl.cControl
         }
         private int CalculateRealMaxValue()
         {
-            Point currentVerticalScrollValue = panelScroll.AutoScrollPosition;
-            // Przeciągnij suwak na sam dół programowo
+            Point currentVerticalScrollValue = new Point(0,0);
+
             panelScroll.VerticalScroll.Value = panelScroll.VerticalScroll.Maximum;
-            // Pobierz AutoScrollPosition
+
             Point autoScrollPosition = panelScroll.AutoScrollPosition;
-            // Oblicz realMaxValue
+
             int realMaxValue = -autoScrollPosition.Y;
             panelScroll.AutoScrollPosition = currentVerticalScrollValue;
+            scrollOffsetY = 0;
 
             return realMaxValue;
         }
