@@ -25,6 +25,7 @@ namespace InteractiveMapControl.cControl
         private Point resizeStartPoint;
         private Size originalSize;
 
+        private int scrollOffsetYMax;
         private int gridSpacing = 20;
         private int previousGridSpacing = 20;
         private Bitmap gridBitmap;
@@ -47,13 +48,14 @@ namespace InteractiveMapControl.cControl
             backgroundPictureBox.BackColor = Color.White;
 
             backgroundPictureBox.Click += BackgroundPictureBox_Click;
-
             backgroundPictureBox.MouseWheel += BackgroundPictureBox_MouseWheel;
             panelScroll.Scroll += BackgroundPictureBox_Scroll;
+            panelScroll.Layout += PanelScroll_Layout;
 
 
             UpdateGrid();
             backgroundPictureBox.Paint += AddAxes_Paint;
+
 
             InitializeGroupVisibilityComboBox();
 
@@ -76,6 +78,7 @@ namespace InteractiveMapControl.cControl
                     DisplayObjectInfo();
                     AddObjectsToFindObjectComboBox();
 
+
                     SaveBoardObjectsToJson();
                 }
                 catch (Exception ex)
@@ -83,25 +86,35 @@ namespace InteractiveMapControl.cControl
                     Debug.WriteLine($"Błąd wczytywania XLSX: {ex.Message}");
                 }
             }
-
-
         }
-
+        private void PanelScroll_Layout(object sender, LayoutEventArgs e)
+        {
+            scrollOffsetYMax = CalculateRealMaxValue();
+        }
         public static int Clamp(int value, int min, int max)
         {
             if (value < min) return min;
             if (value > max) return max;
             return value;
         }
+        private int CalculateRealMaxValue()
+        {
+            Point currentVerticalScrollValue = panelScroll.AutoScrollPosition;
+            // Przeciągnij suwak na sam dół programowo
+            panelScroll.VerticalScroll.Value = panelScroll.VerticalScroll.Maximum;
+            // Pobierz AutoScrollPosition
+            Point autoScrollPosition = panelScroll.AutoScrollPosition;
+            // Oblicz realMaxValue
+            int realMaxValue = -autoScrollPosition.Y;
+            panelScroll.AutoScrollPosition = currentVerticalScrollValue;
 
+            return realMaxValue;
+        }
         private void BackgroundPictureBox_MouseWheel(object sender, MouseEventArgs e)
         {
             int scrollStep = 0;
             int scrollOffsetYMin = 0;
-            int scrollOffsetYMax = 0;
 
-            //Zauważyłem zależność pomiędzy zmianą scrollOffsetYMax - zawsze jest mniejszy o 483 niezależnie od wartości gridSpacing
-            scrollOffsetYMax = backgroundPictureBox.Height - 483;
             scrollStep = Math.Abs(e.Delta);
             int scrollChange = e.Delta > 0 ? -scrollStep : scrollStep;
             int newScrollOffsetY = scrollOffsetY + scrollChange;
@@ -119,6 +132,21 @@ namespace InteractiveMapControl.cControl
 
             BackgroundPictureBox_Scroll(sender, scrollArgs);
 
+
+
+            //if (e.ScrollOrientation == ScrollOrientation.HorizontalScroll)
+            //{
+            //    scrollOffsetX = e.NewValue;
+            //}
+            //else if (e.ScrollOrientation == ScrollOrientation.VerticalScroll)
+            //{
+            //    scrollOffsetY = e.NewValue;
+            //}
+            //DisplayObjectInfo();
+            //Invalidate();
+
+            //scrollOffsetY = panelScroll.VerticalScroll.Value;
+            //Invalidate();
             if (ModifierKeys.HasFlag(Keys.Control))
             {
                 if (e.Delta > 0)
@@ -675,17 +703,21 @@ namespace InteractiveMapControl.cControl
                     }
                 }
             }
-            //else
-            //{
-            //    //listBox.Items.Add($"Rozmiar planszy: {backgroundPictureBox.Size}");
-            //    //listBox.Items.Add($"Odstęp siatki (gridSpacing): {gridSpacing}");
+            else
+            {
+                listBox.Items.Add($"Rozmiar planszy: {backgroundPictureBox.Size}");
+                listBox.Items.Add($"Odstęp siatki (gridSpacing): {gridSpacing}");
 
-            //    //if (xAxisPanel != null)
-            //    //{
-            //    //    listBox.Items.Add($"Panel osi X: {xAxisPanel.Location}");
-            //    //    listBox.Items.Add($"Przesunięcie scrolla Y: {scrollOffsetY}");
-            //    //}
-            //}
+                if (xAxisPanel != null)
+                {
+                    listBox.Items.Add($"xAxisPanel.Location: {xAxisPanel.Location}");
+                    listBox.Items.Add($"xAxisPanel.Size: {xAxisPanel.Size}");
+                    listBox.Items.Add($"scrollOffsetY: {scrollOffsetY}");
+                    listBox.Items.Add($"panelScroll.Size: {panelScroll.Size}");
+                    listBox.Items.Add($"VerticalScroll.Value: {panelScroll.VerticalScroll.Value}");
+                    listBox.Items.Add($"scrollOffsetYMax: {scrollOffsetYMax}");
+                }
+            }
             //else
             //{
             //    //WYŚWIETLANIE Z INDEKSÓW
@@ -711,36 +743,36 @@ namespace InteractiveMapControl.cControl
             //    //DisplayControls(backgroundPictureBox);
 
             //}
-            else
-            {
-                // Znajdź obiekt o ID 9 w liście boardObjects
-                var boardObject = boardObjects.FirstOrDefault(obj => obj.ObjectID == 9);
-                if (boardObject?.UIElement != null)
-                {
-                    Control element = boardObject.UIElement;
+            //else
+            //{
+            //    // Znajdź obiekt o ID 9 w liście boardObjects
+            //    var boardObject = boardObjects.FirstOrDefault(obj => obj.ObjectID == 9);
+            //    if (boardObject?.UIElement != null)
+            //    {
+            //        Control element = boardObject.UIElement;
 
-                    listBox.Items.Add($"[UIElement] ID: 9");
-                    listBox.Items.Add($"   Lokalizacja: {element.Location}");
-                    listBox.Items.Add($"   Rozmiar: {element.Size}");
-                }
-                else
-                {
-                    listBox.Items.Add("[UIElement] Obiekt o ID 9 nie został znaleziony.");
-                }
+            //        listBox.Items.Add($"[UIElement] ID: 9");
+            //        listBox.Items.Add($"   Lokalizacja: {element.Location}");
+            //        listBox.Items.Add($"   Rozmiar: {element.Size}");
+            //    }
+            //    else
+            //    {
+            //        listBox.Items.Add("[UIElement] Obiekt o ID 9 nie został znaleziony.");
+            //    }
 
-                // Znajdź cień o nazwie "9_shadow" w liście shadowObjects
-                var shadowObject = shadowObjects.FirstOrDefault(s => s.Name == "9_shadow");
-                if (shadowObject != null)
-                {
-                    listBox.Items.Add($"[Shadow] ID: 9");
-                    listBox.Items.Add($"   Lokalizacja: {shadowObject.Location}");
-                    listBox.Items.Add($"   Rozmiar: {shadowObject.Size}");
-                }
-                else
-                {
-                    listBox.Items.Add("[Shadow] Cień dla obiektu o ID 9 nie został znaleziony.");
-                }
-            }
+            //    // Znajdź cień o nazwie "9_shadow" w liście shadowObjects
+            //    var shadowObject = shadowObjects.FirstOrDefault(s => s.Name == "9_shadow");
+            //    if (shadowObject != null)
+            //    {
+            //        listBox.Items.Add($"[Shadow] ID: 9");
+            //        listBox.Items.Add($"   Lokalizacja: {shadowObject.Location}");
+            //        listBox.Items.Add($"   Rozmiar: {shadowObject.Size}");
+            //    }
+            //    else
+            //    {
+            //        listBox.Items.Add("[Shadow] Cień dla obiektu o ID 9 nie został znaleziony.");
+            //    }
+            //}
 
 
         }
