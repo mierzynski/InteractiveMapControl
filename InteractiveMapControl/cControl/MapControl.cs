@@ -943,6 +943,11 @@ namespace InteractiveMapControl.cControl
                     draggedObject.UIElement.Location = new Point(newX, newY);
                     UpdateShadow(draggedObject.ObjectID, newX, newY, draggedObject.UIElement.Width, draggedObject.UIElement.Height);
 
+                    if (draggedObject.Level == 1)
+                    {
+                        backgroundPictureBox.Invalidate();
+                        backgroundPictureBox.Update();
+                    }
                     // Odśwież panel, aby trójkąt został narysowany w nowej pozycji
                     _draggedControl.Invalidate();
                     SaveBoardObjectsToJson();
